@@ -20,30 +20,56 @@
     <div v-if="!isLoading && tradeEvents.length">
       <div class="row" v-for="event in tradeEvents" :key="event._id">
         <div class="col">
-          <p v-if="event.data.renown" class="mb-1">
+          <p v-if="event.type === 'playerRenownReceived'" class="mb-1">
             <i class="me-1 fas"
-               :class="{'fa-arrow-right text-danger': event.data.toPlayerId, 'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
+               :class="{'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
             <span>{{ event.data.renown }} <span class="text-warning">renown</span>.</span>
           </p>
-          <p v-if="event.data.credits" class="mb-1">
+          <p v-if="event.type === 'playerRenownSent'" class="mb-1">
             <i class="me-1 fas"
-               :class="{'fa-arrow-right text-danger': event.data.toPlayerId, 'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
+               :class="{'fa-arrow-right text-danger': event.data.toPlayerId}"></i>
+            <span>{{ event.data.renown }} <span class="text-warning">renown</span>.</span>
+          </p>
+          <p v-if="event.type === 'playerCreditsReceived'" class="mb-1">
+            <i class="me-1 fas"
+               :class="{'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
             <span>{{ event.data.credits }} <span class="text-warning">credits</span>.</span>
           </p>
-          <p v-if="event.data.creditsSpecialists" class="mb-1">
+          <p v-if="event.type === 'playerCreditsSent'" class="mb-1">
             <i class="me-1 fas"
-               :class="{'fa-arrow-right text-danger': event.data.toPlayerId, 'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
+               :class="{'fa-arrow-right text-danger': event.data.toPlayerId}"></i>
+            <span>{{ event.data.credits }} <span class="text-warning">credits</span>.</span>
+          </p>
+          <p v-if="event.type === 'playerCreditsSpecialistsReceived'" class="mb-1">
+            <i class="me-1 fas"
+               :class="{'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
             <span>{{ event.data.creditsSpecialists }} <span class="text-warning">specialist token(s)</span>.</span>
           </p>
-          <p v-if="event.data.technology" class="mb-1">
+          <p v-if="event.type === 'playerCreditsSpecialistsSent'" class="mb-1">
             <i class="me-1 fas"
-               :class="{'fa-arrow-right text-danger': event.data.toPlayerId, 'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
-            <span>Level {{ event.data.technology.level }} <span
-              class="text-warning">{{ getTechnologyFriendlyName(event.data.technology.name) }}</span></span>.
+               :class="{'fa-arrow-right text-danger': event.data.toPlayerId}"></i>
+            <span>{{ event.data.creditsSpecialists }} <span class="text-warning">specialist token(s)</span>.</span>
           </p>
-          <p v-if="event.data.carrierShips" class="mb-1">
+          <p v-if="event.type === 'playerTechnologyReceived'" class="mb-1">
             <i class="me-1 fas"
-               :class="{'fa-arrow-right text-danger': event.data.toPlayerId, 'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
+               :class="{'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
+            <span>Level {{ event.data.technology.level }} <span
+              class="text-warning">{{ getTechnologyFriendlyName(event.data.technology.name as ResearchTypeNotRandom) }}</span></span>.
+          </p>
+          <p v-if="event.type === 'playerTechnologySent'" class="mb-1">
+            <i class="me-1 fas"
+               :class="{'fa-arrow-right text-danger': event.data.toPlayerId}"></i>
+            <span>Level {{ event.data.technology.level }} <span
+              class="text-warning">{{ getTechnologyFriendlyName(event.data.technology.name as ResearchTypeNotRandom) }}</span></span>.
+          </p>
+          <p v-if="event.type === 'playerGiftReceived'" class="mb-1">
+            <i class="me-1 fas"
+               :class="{'fa-arrow-left text-success': event.data.fromPlayerId}"></i>
+            <span>{{ event.data.carrierShips }} <span class="text-warning">ships</span>.</span>
+          </p>
+          <p v-if="event.type === 'playerGiftSent'" class="mb-1">
+            <i class="me-1 fas"
+               :class="{'fa-arrow-right text-danger': event.data.toPlayerId}"></i>
             <span>{{ event.data.carrierShips }} <span class="text-warning">ships</span>.</span>
           </p>
           <p v-if="event.type === 'playerDebtSettled'" class="mb-1">
@@ -76,7 +102,7 @@ import TechnologyHelper from '../../../../services/technologyHelper';
 import LoadingSpinner from '../../../components/LoadingSpinner.vue';
 import { compareAsc } from 'date-fns';
 import type {Game} from "@/types/game";
-import type {ResearchTypeNotRandom, TradeEvent} from "@solaris-common";
+import {type BasePlayerDebtEvent, type ResearchTypeNotRandom, type TradeEvent} from "@solaris-common";
 import {listTradeEvents} from "@/services/typedapi/trade";
 import {formatError, httpInjectionKey, isOk} from "@/services/typedapi";
 
@@ -88,17 +114,16 @@ const httpClient = inject(httpInjectionKey)!;
 
 const store = useStore();
 const game = computed<Game>(() => store.state.game);
-const userPlayer = computed(() => GameHelper.getUserPlayer(game.value)!);
 
 const isLoading = ref(false);
 const tradeEvents = ref<TradeEvent<string>[]>([]);
 
 const isUserPlayerLedgerEventCreditor = (event: TradeEvent<string>) => {
   if (event.type !== 'playerDebtSettled' && event.type !== 'playerDebtForgiven') {
-    return false
+    return false;
   }
 
-  const summary = GameHelper.getLedgerGameEventPlayerSummary(game.value, event)
+  const summary = GameHelper.getLedgerGameEventPlayerSummary(game.value, event);
 
   return summary.isCreditor
 };
@@ -107,7 +132,7 @@ const getTechnologyFriendlyName = (key: ResearchTypeNotRandom) => TechnologyHelp
 
 const getDateString = (date: Date) => GameHelper.getDateString(date);
 
-const getCreditsType = (event: TradeEvent<string>) => {
+const getCreditsType = (event: BasePlayerDebtEvent<string>) => {
   if (event.data.ledgerType === 'credits') {
     return 'credits';
   } else if (event.data.ledgerType === 'creditsSpecialists') {

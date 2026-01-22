@@ -246,7 +246,7 @@ const onTradeEventReceived = (e: { playerId: string, type: string, date: Date, d
       ...e,
       sentDate: e.date,
       sentTick: game.value.state.tick,
-    });
+    } as any); // TODO: Properly type all this
 
     scrollToEnd();
   }
