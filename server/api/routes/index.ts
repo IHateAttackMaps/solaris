@@ -1,6 +1,6 @@
 import { createValidator } from "express-joi-validation";
 import { DependencyContainer } from "../../services/types/DependencyContainer";
-import Middleware, {MiddlewareContainer} from '../middleware';
+import {MiddlewareContainer} from '../middleware';
 
 import registerAdminRoutes from './admin';
 import registerAuthRoutes from './auth';
@@ -14,7 +14,8 @@ import registerGuildRoutes from './guilds';
 import registerLedgerRoutes from './ledger';
 import registerReportRoutes from './report';
 import registerResearchRoutes from './research';
-import registerShopRoutes from './shop';
+import registerShopProcessRoutes from './shopProcess';
+import registerShopPurchaseRoutes from './shopPurchase';
 import registerSpecialistRoutes from './specialist';
 import registerStarRoutes from './star';
 import registerTradeRoutes from './trade';
@@ -40,7 +41,8 @@ export default (router: SingleRouter, container: DependencyContainer, middleware
     registerLedgerRoutes(router, middleware, validator, container);
     registerReportRoutes(router, middleware, validator, container);
     registerResearchRoutes(router, middleware, validator, container);
-    registerShopRoutes(router, middleware, validator, container);
+    registerShopProcessRoutes(router, middleware, validator, container);
+    registerShopPurchaseRoutes(router, middleware, validator, container);
     registerSpecialistRoutes(router, middleware, validator, container);
     registerStarRoutes(router, middleware, validator, container);
     registerTradeRoutes(router, middleware, validator, container);

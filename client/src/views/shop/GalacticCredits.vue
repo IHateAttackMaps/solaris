@@ -14,7 +14,7 @@
       player profile.
     </p>
 
-    <h5 v-if="userCredits">You have <span class="text-warning"><strong>{{ userCredits.credits }}</strong> Galactic
+    <h5 v-if="userCredits">You have <span class="text-warning"><strong>{{ userCredits }}</strong> Galactic
         Credits</span>.</h5>
 
     <hr />
@@ -161,66 +161,56 @@
   </view-container>
 </template>
 
-<script>
-import ViewTitle from '../components/ViewTitle.vue'
-import ViewContainer from '../components/ViewContainer.vue'
-import LoadingSpinner from '../components/LoadingSpinner.vue'
-import ShopApiService from '../../services/api/shop'
-import { getCredits } from '@/services/typedapi/user'
-import { formatError, httpInjectionKey, isOk } from '@/services/typedapi'
-import { inject } from 'vue'
+<script setup lang="ts">
+import ViewTitle from '../components/ViewTitle.vue';
+import ViewContainer from '../components/ViewContainer.vue';
+import LoadingSpinner from '../components/LoadingSpinner.vue';
+import { getCredits } from '@/services/typedapi/user';
+import { formatError, httpInjectionKey, isOk } from '@/services/typedapi';
+import { inject, ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import {purchaseGalacticCredits} from "@/services/typedapi/shopPurchase";
+import {toastInjectionKey} from "@/util/keys";
 
-export default {
-  components: {
-    'view-container': ViewContainer,
-    'view-title': ViewTitle,
-    'loading-spinner': LoadingSpinner,
-  },
-  setup() {
-    return {
-      httpClient: inject(httpInjectionKey),
-    };
-  },
-  data() {
-    return {
-      isLoading: false,
-      userCredits: null,
-    }
-  },
-  async mounted() {
-    this.isLoading = true
-    await this.loadGalacticCredits()
-    this.isLoading = false
-  },
-  methods: {
-    async loadGalacticCredits() {
-      const response = await getCredits(this.httpClient)();
+const httpClient = inject(httpInjectionKey)!;
+const toast = inject(toastInjectionKey)!;
 
-      if (isOk(response)) {
-        this.userCredits = response.data
+const store = useStore();
 
-        this.$store.commit('setUserCredits', response.data.credits)
-      } else {
-        console.error(formatError(response));
-      }
-    },
-    async buyCreditPack(credits) {
-      this.isLoading = true
+const userCredits = ref(0);
+const isLoading = ref(false);
 
-      try {
-        let response = await ShopApiService.purchaseGalacticCredits(credits)
+const loadGalacticCredits = async () => {
+  const response = await getCredits(httpClient)();
 
-        if (response.status === 200) {
-          window.location = response.data.approvalUrl
-        }
-      } catch (err) {
-        console.error(err)
-      }
+  if (isOk(response)) {
+    userCredits.value = response.data.credits;
 
-      this.isLoading = false
-    }
+    store.commit('setUserCredits', response.data.credits);
+  } else {
+    console.error(formatError(response));
   }
-}
+};
+
+const buyCreditPack = async (credits: number) => {
+  isLoading.value = true;
+
+  const response = await purchaseGalacticCredits(httpClient)(credits);
+  if (isOk(response)) {
+    window.location.href = response.data.approvalUrl;
+  } else {
+    console.error(formatError(response));
+    toast.error('An error occurred while trying to purchase Galactic Credits. Please try again later.');
+  }
+};
+
+onMounted(async () => {
+  isLoading.value = true;
+
+  await loadGalacticCredits();
+
+  isLoading.value = false;
+});
 </script>
 
 <style scoped></style>
