@@ -20,10 +20,12 @@ export interface GuildInviteUserRequest {
     username: string;
 }
 
+export type GuildSortingKey = 'totalRank' | 'memberCount';
+
 export const createGuildRoutes = <ID>() => ({
     listGuilds: new SimpleGetRoute<GuildRank<ID>[]>("/api/guild/list"),
     detailMyGuild: new SimpleGetRoute<GuildWithUsers<ID> | null>("/api/guild"),
-    listGuildLeaderboard: new SimpleGetRoute<GuildLeaderboardResponse<ID>>("/api/guild/leaderboard"),
+    listGuildLeaderboard: new GetRoute<{}, { sortingKey: GuildSortingKey, limit: number }, GuildLeaderboardResponse<ID>>("/api/guild/leaderboard"),
     listMyGuildInvites: new SimpleGetRoute<Guild<ID>[]>("/api/guild/invites"),
     listMyGuildApplications: new SimpleGetRoute<Guild<ID>[]>("/api/guild/applications"),
     detailGuild: new GetRoute<{ guildId: ID }, {}, GuildWithUsers<ID> | null>("/api/guild/:guildId"),
@@ -38,7 +40,7 @@ export const createGuildRoutes = <ID>() => ({
     applyToGuild: new PutRoute<{ guildId: ID }, {}, {}, {}>("/api/guild/:guildId/apply"),
     withdrawGuildApplication: new PatchRoute<{ guildId: ID }, {}, {}, {}>("/api/guild/:guildId/withdraw"),
     rejectGuildApplication: new PatchRoute<{ guildId: ID, userId: ID }, {}, {}, {}>("/api/guild/:guildId/reject/:userId"),
-    leaveGuild: new PatchRoute<{ guildID: ID }, {}, {}, {}>("/api/guild/:guildId/leave"),
+    leaveGuild: new PatchRoute<{ guildId: ID }, {}, {}, {}>("/api/guild/:guildId/leave"),
     promoteGuildMember: new PatchRoute<{ guildId: ID, userId: ID }, {}, {}, {}>("/api/guild/:guildId/promote/:userId"),
     demoteGuildMember: new PatchRoute<{ guildId: ID, userId: ID }, {}, {}, {}>("/api/guild/:guildId/demote/:userId"),
     kickGuildMember: new PatchRoute<{ guildId: ID, userId: ID }, {}, {}, {}>("/api/guild/:guildId/kick/:userId"),
