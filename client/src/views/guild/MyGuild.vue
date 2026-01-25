@@ -9,23 +9,23 @@
 
       <h5 class="mb-0">Guild Roster</h5>
 
-      <p class="mb-2"><small class="text-warning">Total Members: {{1 + guild.officers.length + guild.members.length}}</small></p>
+      <p class="mb-2"><small class="text-warning">Total Members: {{1 + (guild.officers?.length || 0) + (guild.members?.length || 0)}}</small></p>
 
       <guild-member-list :guild="guild">
         <template v-slot:default="{ value, getColumnClass }">
           <guild-member :guild="guild" :player="value" :role="value.role" :getColumnClass="getColumnClass"
-            @onPlayerPromoted="onPlayerPromoted"
-            @onPlayerDemoted="onPlayerDemoted"
-            @onPlayerKicked="onPlayerKicked"
-            @onPlayerUninvited="onPlayerUninvited"
-            @onPlayerApplicationAccepted="onPlayerApplicationAccepted"
-            @onPlayerApplicationRejected="onPlayerApplicationRejected"></guild-member>
+            @onPlayerPromoted="onUpdate"
+            @onPlayerDemoted="onUpdate"
+            @onPlayerKicked="onUpdate"
+            @onPlayerUninvited="onUpdate"
+            @onPlayerApplicationAccepted="onUpdate"
+            @onPlayerApplicationRejected="onUpdate"></guild-member>
         </template>
       </guild-member-list>
 
       <guild-new-invite v-if="isLeader || isOfficer"
-        :guildId="this.guild._id"
-        @onUserInvited="onUserInvited"/>
+        :guildId="guild._id"
+        @onUserInvited="onUpdate"/>
 
       <router-link to="/guild/rename" class="btn btn-sm btn-primary mt-2" v-if="isLeader">
         <i class="fas fa-pencil-alt"></i> Rename Guild
@@ -48,10 +48,10 @@
       <div class="table-responsive" v-if="invites.length">
           <table class="table table-striped table-hover">
               <tbody>
-                <guild-invite v-for="invite in invites" :key="invite.guildId"
+                <guild-invite v-for="invite in invites" :key="invite._id"
                   :invite="invite"
-                  @onInvitationAccepted="onInvitationAccepted"
-                  @onInvitationDeclined="onInvitationDeclined"/>
+                  @onInvitationAccepted="onUpdate"
+                  @onInvitationDeclined="onUpdate"/>
               </tbody>
           </table>
       </div>
@@ -65,7 +65,7 @@
       <div class="table-responsive" v-if="applications.length">
           <table class="table table-striped table-hover">
               <tbody>
-                <guild-application v-for="application in applications" :key="application.guildId"
+                <guild-application v-for="application in applications" :key="application._id"
                   :application="application"/>
               </tbody>
           </table>
@@ -74,116 +74,75 @@
   </view-container>
 </template>
 
-<script>
-import ViewContainer from '../components/ViewContainer.vue'
-import ViewTitle from '../components/ViewTitle.vue'
-import LoadingSpinner from '../components/LoadingSpinner.vue'
-import GuildApiService from '../../services/api/guild'
-import GuildNewInvite from './components/NewInvite.vue'
-import GuildInvite from './components/Invite.vue'
-import GuildApplication from './components/Application.vue'
+<script setup lang="ts">
+import { ref, onMounted, computed, inject } from 'vue';
+import { useStore } from 'vuex';
+import ViewContainer from '../components/ViewContainer.vue';
+import ViewTitle from '../components/ViewTitle.vue';
+import LoadingSpinner from '../components/LoadingSpinner.vue';
+import GuildNewInvite from './components/NewInvite.vue';
+import GuildInvite from './components/Invite.vue';
+import GuildApplication from './components/Application.vue';
 import GuildMember from './components/Member.vue'
 import GuildMemberList from './components/MemberList.vue'
+import type {Guild, GuildWithUsers} from "@solaris-common";
+import {detailMyGuild, listMyGuildApplications, listMyGuildInvites} from "@/services/typedapi/guild";
+import {formatError, httpInjectionKey, isOk} from "@/services/typedapi";
 
-export default {
-  components: {
-    'view-container': ViewContainer,
-    'view-title': ViewTitle,
-    'loading-spinner': LoadingSpinner,
-    'guild-new-invite': GuildNewInvite,
-    'guild-invite': GuildInvite,
-    'guild-application': GuildApplication,
-    'guild-member': GuildMember,
-    'guild-member-list': GuildMemberList
-  },
-  data () {
-    return {
-      isLoading: false,
-      guild: null,
-      invites: [],
-      applications: []
+const httpClient = inject(httpInjectionKey)!;
+
+const store = useStore();
+
+const isLoading = ref(false);
+const guild = ref<GuildWithUsers<string> | null>(null);
+const invites = ref<Guild<string>[]>([]);
+const applications = ref<Guild<string>[]>([]);
+
+const guildFullName = computed(() => `${guild.value!.name} [${guild.value!.tag}]`);
+
+const isLeader = computed(() => {
+  return guild.value!.leader != null && guild.value!.leader._id === store.state.userId;
+});
+
+const isOfficer = computed(() => {
+  return guild.value!.officers?.find(x => x._id === store.state.userId) != null;
+});
+
+const loadGuild = async () => {
+  isLoading.value = true;
+  guild.value = null;
+
+  const response = await detailMyGuild(httpClient)();
+  if (isOk(response)) {
+    guild.value = response.data;
+  } else {
+    console.error(formatError(response));
+
+    const invitesResponse = await listMyGuildInvites(httpClient)();
+    if (isOk(invitesResponse)) {
+      invites.value = invitesResponse.data;
+    } else {
+      console.error(formatError(invitesResponse));
     }
-  },
-  async mounted () {
-    await this.loadGuild()
-  },
-  methods: {
-    async loadGuild () {
-      this.isLoading = true
-      this.guild = null
 
-      try {
-        let response = await GuildApiService.detailMyGuild()
-
-        if (response.status === 200) {
-          this.guild = response.data
-        }
-
-        if (!this.guild) {
-          response = await GuildApiService.listInvitations()
-
-          if (response.status === 200) {
-            this.invites = response.data
-          }
-
-          response = await GuildApiService.listApplications()
-
-          if (response.status === 200) {
-            this.applications = response.data
-          }
-        }
-      } catch (err) {
-        console.error(err)
-      }
-
-      this.isLoading = false
-    },
-    onUserInvited (e) {
-      this.loadGuild();
-    },
-    onInvitationAccepted (e) {
-      this.invites = []
-
-      this.loadGuild()
-    },
-    // TODO: Fuck it.
-    onInvitationDeclined (e) {
-      this.loadGuild()
-    },
-    onPlayerPromoted (e) {
-      this.loadGuild()
-    },
-    onPlayerDemoted (e) {
-      this.loadGuild()
-    },
-    onPlayerKicked (e) {
-      this.loadGuild()
-    },
-    onPlayerUninvited (e) {
-      this.loadGuild()
-    },
-    onPlayerApplicationAccepted (e) {
-      this.loadGuild()
-    },
-    onPlayerApplicationRejected (e) {
-      this.loadGuild()
-    },
-    isCurrentUser (userId) {
-      return userId === this.$store.state.userId
-    }
-  },
-  computed: {
-    guildFullName () {
-      return `${this.guild.name} [${this.guild.tag}]`
-    },
-    isLeader () {
-      return this.guild.leader != null && this.guild.leader._id === this.$store.state.userId
-    },
-    isOfficer () {
-      return this.guild.officers.find(x => x._id === this.$store.state.userId) != null
+    const applicationsResponse = await listMyGuildApplications(httpClient)();
+    if (isOk(applicationsResponse)) {
+      applications.value = applicationsResponse.data;
+    } else {
+      console.error(formatError(applicationsResponse));
     }
   }
-}
+
+  isLoading.value = false;
+};
+
+const onUpdate = () => {
+  loadGuild();
+};
+
+onMounted(() => {
+  loadGuild();
+});
 </script>
 
 <style scoped>
