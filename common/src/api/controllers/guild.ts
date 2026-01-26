@@ -20,6 +20,13 @@ export interface GuildInviteUserRequest {
     username: string;
 }
 
+export interface GuildApplication<ID> {
+    _id: ID,
+    name: string;
+    tag: string;
+    hasApplied: boolean;
+}
+
 export type GuildSortingKey = 'totalRank' | 'memberCount';
 
 export const createGuildRoutes = <ID>() => ({
@@ -27,7 +34,7 @@ export const createGuildRoutes = <ID>() => ({
     detailMyGuild: new SimpleGetRoute<GuildWithUsers<ID> | null>("/api/guild"),
     listGuildLeaderboard: new GetRoute<{}, { sortingKey: GuildSortingKey, limit: number }, GuildLeaderboardResponse<ID>>("/api/guild/leaderboard"),
     listMyGuildInvites: new SimpleGetRoute<Guild<ID>[]>("/api/guild/invites"),
-    listMyGuildApplications: new SimpleGetRoute<Guild<ID>[]>("/api/guild/applications"),
+    listMyGuildApplications: new SimpleGetRoute<GuildApplication<ID>[]>("/api/guild/applications"),
     detailGuild: new GetRoute<{ guildId: ID }, {}, GuildWithUsers<ID> | null>("/api/guild/:guildId"),
     createGuild: new PostRoute<{}, {}, GuildCreateGuildRequest, Guild<ID>>("/api/guild"),
     renameGuild: new PatchRoute<{}, {}, GuildRenameGuildRequest, Guild<ID>>("/api/guild"),

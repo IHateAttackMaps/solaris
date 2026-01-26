@@ -16,59 +16,58 @@
   </tr>
 </template>
 
-<script>
-import GuildApiService from '../../../services/api/guild'
+<script setup lang="ts">
+import { ref, computed, inject } from 'vue';
+import { useStore } from 'vuex';
+import type {Guild, GuildApplication} from "@solaris-common";
+import {makeConfirm} from "@/util/confirm";
+import {applyToGuild, withdrawGuildApplication} from "@/services/typedapi/guild";
+import {formatError, httpInjectionKey, isOk} from "@/services/typedapi";
 
-export default {
-  props: {
-    application: Object
-  },
-  data () {
-    return {
-      isLoading: false
-    }
-  },
-  methods: {
-    async apply () {
-      if (!await this.$confirm('Apply to Join', `Are you sure you want to apply to become a member of ${this.application.name}[${this.application.tag}]?`)) {
-        return
-      }
+const props = defineProps<{
+  application: GuildApplication<string>,
+}>();
 
-      this.isLoading = true
+const httpClient = inject(httpInjectionKey)!;
 
-      try {
-        let response = await GuildApiService.apply(this.application._id)
+const store = useStore();
+const confirm = makeConfirm(store);
 
-        if (response.status === 200) {
-          this.application.hasApplied = true
-        }
-      } catch (err) {
-        console.error(err)
-      }
+const isLoading = ref(false);
 
-      this.isLoading = false
-    },
-    async withdraw () {
-      if (!await this.$confirm('Withdraw Application', `Are you sure you want to withdraw the application to ${this.application.name}[${this.application.tag}]?`)) {
-        return
-      }
-
-      this.isLoading = true
-
-      try {
-        let response = await GuildApiService.withdraw(this.application._id)
-
-        if (response.status === 200) {
-          this.application.hasApplied = false
-        }
-      } catch (err) {
-        console.error(err)
-      }
-
-      this.isLoading = false
-    }
+const apply = async () => {
+  if (!await confirm('Apply to Join', `Are you sure you want to apply to become a member of ${props.application.name}[${props.application.tag}]?`)) {
+    return;
   }
-}
+
+  isLoading.value = true;
+
+  const response = await applyToGuild(httpClient)(props.application._id);
+  if (isOk(response)) {
+    props.application.hasApplied = true;
+  } else {
+    console.error(formatError(response));
+  }
+
+  isLoading.value = false;
+};
+
+const withdraw = async () => {
+  if (!await confirm('Withdraw Application', `Are you sure you want to withdraw the application to ${props.application.name}[${props.application.tag}]?`)) {
+    return;
+  }
+
+  isLoading.value = true;
+
+  const response = await withdrawGuildApplication(httpClient)(props.application._id);
+  if (isOk(response)) {
+    props.application.hasApplied = false;
+  } else {
+    console.error(formatError(response));
+  }
+
+  isLoading.value = false;
+};
 </script>
 
 <style scoped>

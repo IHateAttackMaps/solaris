@@ -1,12 +1,12 @@
 import {type Axios} from "axios";
 import {
   createGuildRoutes,
-  type Guild,
+  type Guild, type GuildApplication,
   type GuildLeaderboardResponse,
   type GuildRank, type GuildSortingKey,
   type GuildWithUsers
 } from "@solaris-common";
-import {doDelete, doGet, doPatch, doPost, type ResponseResult} from "@/services/typedapi/index";
+import {doDelete, doGet, doPatch, doPost, doPut, type ResponseResult} from "@/services/typedapi/index";
 
 const routes = createGuildRoutes<string>();
 
@@ -28,7 +28,7 @@ export const listMyGuildInvites = (axios: Axios) => async (): PRR<Guild<string>[
   return doGet(axios)(routes.listMyGuildInvites, {}, {}, { withCredentials: true });
 }
 
-export const listMyGuildApplications = (axios: Axios) => async (): PRR<Guild<string>[]> => {
+export const listMyGuildApplications = (axios: Axios) => async (): PRR<GuildApplication<string>[]> => {
   return doGet(axios)(routes.listMyGuildApplications, {}, {}, { withCredentials: true });
 }
 
@@ -66,6 +66,10 @@ export const acceptGuildInvite = (axios: Axios) => async (guildId: string): PRR<
 
 export const declineGuildInvite = (axios: Axios) => async (guildId: string): PRR<{}> => {
   return doPatch(axios)(routes.declineGuildInvite, { guildId }, {}, {}, { withCredentials: true });
+}
+
+export const applyToGuild = (axios: Axios) => async (guildId: string): PRR<{}> => {
+  return doPut(axios)(routes.applyToGuild, { guildId }, {}, {}, { withCredentials: true });
 }
 
 export const withdrawGuildApplication = (axios: Axios) => async (guildId: string): PRR<{}> => {

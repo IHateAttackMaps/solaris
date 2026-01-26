@@ -85,7 +85,7 @@ import GuildInvite from './components/Invite.vue';
 import GuildApplication from './components/Application.vue';
 import GuildMember from './components/Member.vue'
 import GuildMemberList from './components/MemberList.vue'
-import type {Guild, GuildWithUsers} from "@solaris-common";
+import type {Guild, GuildWithUsers, GuildApplication as GuildApplicationData} from "@solaris-common";
 import {detailMyGuild, listMyGuildApplications, listMyGuildInvites} from "@/services/typedapi/guild";
 import {formatError, httpInjectionKey, isOk} from "@/services/typedapi";
 
@@ -96,7 +96,7 @@ const store = useStore();
 const isLoading = ref(false);
 const guild = ref<GuildWithUsers<string> | null>(null);
 const invites = ref<Guild<string>[]>([]);
-const applications = ref<Guild<string>[]>([]);
+const applications = ref<GuildApplicationData<string>[]>([]);
 
 const guildFullName = computed(() => `${guild.value!.name} [${guild.value!.tag}]`);
 
