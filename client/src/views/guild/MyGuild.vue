@@ -13,13 +13,13 @@
 
       <guild-member-list :guild="guild">
         <template v-slot:default="{ value, getColumnClass }">
-          <guild-member :guild="guild" :player="value" :role="value.role" :getColumnClass="getColumnClass"
-            @onPlayerPromoted="onUpdate"
-            @onPlayerDemoted="onUpdate"
-            @onPlayerKicked="onUpdate"
-            @onPlayerUninvited="onUpdate"
-            @onPlayerApplicationAccepted="onUpdate"
-            @onPlayerApplicationRejected="onUpdate"></guild-member>
+          <guild-member :guild="guild" :user="value" :role="value.role" :getColumnClass="getColumnClass"
+            @onUserPromoted="onUpdate"
+            @onUserDemoted="onUpdate"
+            @onUserKicked="onUpdate"
+            @onUserUninvited="onUpdate"
+            @onUserApplicationAccepted="onUpdate"
+            @onUserApplicationRejected="onUpdate"></guild-member>
         </template>
       </guild-member-list>
 
