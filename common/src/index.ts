@@ -58,6 +58,7 @@ export * from "./api/controllers/trade";
 export * from "./api/controllers/report";
 export * from "./api/controllers/shopPurchase";
 export * from "./api/controllers/guild";
+export * from "./api/controllers/ledger";
 export * from "./events/index";
 export * from "./events/handler";
 export * from "./events/emitter";
