@@ -42,7 +42,7 @@
           ACHIEVEMENTS <i class="fas fa-medal ms-auto text-theme fs-16px my-n1"></i>
         </router-link>
         <div class="dropdown-divider"></div>
-        <a href="javascript:;" @click="logout" :disabled="isLoggingOut" class="dropdown-item d-flex align-items-center">
+        <a href="javascript:;" @click="doLogout" :disabled="isLoggingOut" class="dropdown-item d-flex align-items-center">
           LOGOUT <i class="fas fa-sign-out-alt ms-auto text-theme fs-16px my-n1"></i>
         </a>
       </div>
@@ -53,7 +53,6 @@
 
 <script setup lang="ts">
 import router from '../../router'
-import authService from '../../services/api/auth'
 import { ref, computed, inject } from 'vue';
 import { useStore, type Store } from 'vuex';
 import type {State} from "@/store";
@@ -61,6 +60,7 @@ import type { UserRoles } from '@solaris-common';
 import { formatError, httpInjectionKey, isOk } from '@/services/typedapi';
 import { endImpersonate } from '@/services/typedapi/admin';
 import { toastInjectionKey } from '@/util/keys';
+import {logout} from "@/services/typedapi/auth";
 
 const store: Store<State> = useStore();
 
@@ -103,21 +103,24 @@ const goHome = () => {
   router.push({name: 'home'})
 };
 
-const logout = async () => {
+const doLogout = async () => {
   isLoggingOut.value = true;
 
-  await authService.logout();
+  const response = await logout(httpClient)();
+  if (isOk(response)) {
+    store.commit('clearUser');
+    store.commit('clearUsername');
+    store.commit('clearRoles');
+    store.commit('clearUserCredits');
+    store.commit('clearUserIsEstablishedPlayer');
+    store.commit('clearIsImpersonating');
 
-  store.commit('clearUser');
-  store.commit('clearUsername');
-  store.commit('clearRoles');
-  store.commit('clearUserCredits');
-  store.commit('clearUserIsEstablishedPlayer');
-  store.commit('clearIsImpersonating');
+    isLoggingOut.value = false;
 
-  isLoggingOut.value = false;
-
-  router.push({ name: 'home' });
+    router.push({ name: 'home' });
+  } else {
+    console.error(formatError(response));
+  }
 };
 </script>
 

@@ -43,13 +43,15 @@
 import LoadingSpinner from '../../components/LoadingSpinner.vue';
 import router from '../../../router';
 import FormErrorList from '../../components/FormErrorList.vue';
-import authService from '../../../services/api/auth';
 import {userClientSocketEmitterInjectionKey} from "@/sockets/socketEmitters/user";
 import {inject, ref, type Ref} from 'vue';
 import type {State} from "@/store";
 import { useStore, type Store } from 'vuex';
+import {login} from "@/services/typedapi/auth";
+import {extractErrors, httpInjectionKey, isOk} from "@/services/typedapi";
 
 const userClientSocketEmitter = inject(userClientSocketEmitterInjectionKey)!;
+const httpClient = inject(httpInjectionKey)!;
 
 const store: Store<State> = useStore();
 
@@ -75,26 +77,22 @@ const handleSubmit = async (e: Event) => {
     return;
   }
 
-  try {
-    isLoading.value = true;
+  isLoading.value = true;
 
-    const emailAddress = email.value;
+  const emailAddress = email.value;
 
-    // Call the login API endpoint
-    const response = await authService.login(emailAddress, password.value);
+  const response = await login(httpClient)(emailAddress, password.value);
+  if (isOk(response)) {
+    store.commit('setUserId', response.data._id)
+    store.commit('setUsername', response.data.username)
+    store.commit('setRoles', response.data.roles)
+    store.commit('setUserCredits', response.data.credits)
 
-    if (response.status === 200) {
-      store.commit('setUserId', response.data._id)
-      store.commit('setUsername', response.data.username)
-      store.commit('setRoles', response.data.roles)
-      store.commit('setUserCredits', response.data.credits)
+    userClientSocketEmitter.emitJoined();
 
-      userClientSocketEmitter.emitJoined();
-
-      router.push({name: 'main-menu'})
-    }
-  } catch (err: any) {
-    errors.value = err.response.data.errors || [];
+    router.push({name: 'main-menu'})
+  } else {
+    errors.value = extractErrors(response);
   }
 
   isLoading.value = false

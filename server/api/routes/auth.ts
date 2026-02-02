@@ -4,29 +4,33 @@ import AuthController from '../controllers/auth';
 import { MiddlewareContainer } from "../middleware";
 import { authLoginRequestSchema } from "../requests/auth";
 import {SingleRouter} from "../singleRoute";
+import {createAuthRoutes} from "solaris-common";
+import {DBObjectId} from "../../services/types/DBObjectId";
+import {createRoutes} from "../typedapi/routes";
 
 export default (router: SingleRouter, mw: MiddlewareContainer, validator: ExpressJoiInstance, container: DependencyContainer) => {
     const controller = AuthController(container);
+    const routes = createAuthRoutes<DBObjectId>();
+    const answer = createRoutes(router, mw);
 
-    router.post('/api/auth/login',
+    answer(routes.login,
             validator.body(authLoginRequestSchema),
             controller.login
     );
 
-    router.post('/api/auth/logout',
-        
+    answer(routes.logout,
             controller.logout
     );
 
-    router.post('/api/auth/verify',
+    answer(routes.verify,
             controller.verify
     );
 
-    router.get('/api/auth/discord',
+    answer(routes.authoriseDiscord,
             controller.authoriseDiscord // TODO: This should be in another api file. oauth.js?
     );
 
-    router.delete('/api/auth/discord',
+    answer(routes.unauthoriseDiscord,
             mw.auth.authenticate(),
             controller.unauthoriseDiscord
     );

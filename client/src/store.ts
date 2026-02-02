@@ -4,7 +4,6 @@ import { type EventBus } from './eventBus';
 import MenuEventBusEventNames from './eventBusEventNames/menu';
 import GameMutationNames from './mutationNames/gameMutationNames';
 import PlayerMutationNames from './mutationNames/playerMutationNames';
-import ApiAuthService from "./services/api/auth.js";
 import GameHelper from './services/gameHelper.js';
 import type { Game, Player, Star } from "./types/game";
 import type { Store } from 'vuex/types/index.js';
@@ -17,6 +16,7 @@ import {detailMe} from "@/services/typedapi/user";
 import type { OnPreStarParams } from './eventBusEventNames/map';
 import {listCarrierForGame, listStarForGame} from "@/services/typedapi/specialist";
 import {addColour, listColours} from "@/services/typedapi/colour";
+import {verify} from "@/services/typedapi/auth";
 
 export type MentionCallbacks = {
   player: (p: Player) => void;
@@ -583,33 +583,30 @@ export function createSolarisStore(eventBus: EventBus, httpClient: Axios, userCl
       }
     },
     async verify({ commit, state }) {
-      try {
-        const response = await ApiAuthService.verify();
+      const response = await verify(httpClient)();
+      if (isOk(response)) {
+        if (response.data._id) {
+          commit('setUserId', response.data._id);
+          commit('setUsername', response.data.username);
+          commit('setRoles', response.data.roles);
+          commit('setUserCredits', response.data.credits);
 
-        if (response.status === 200) {
-          if (response.data._id) {
-            commit('setUserId', response.data._id)
-            commit('setUsername', response.data.username)
-            commit('setRoles', response.data.roles)
-            commit('setUserCredits', response.data.credits)
-
-            if (!state.user || state.user?._id !== response.data._id) {
-              const resp2 = await detailMe(httpClient)();
-              if (isOk(resp2)) {
-                commit('setUser', resp2.data);
-                userClientSocketEmitter.emitJoined();
-              } else {
-                console.error('Failed to get user info', resp2);
-              }
+          if (!state.user || state.user?._id !== response.data._id) {
+            const resp2 = await detailMe(httpClient)();
+            if (isOk(resp2)) {
+              commit('setUser', resp2.data);
+              userClientSocketEmitter.emitJoined();
+            } else {
+              console.error('Failed to get user info', resp2);
             }
-
-            return true;
           }
-        }
 
-        return false;
-      } catch (err) {
-        console.error(err);
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        console.error(formatError(response));
         return false;
       }
     },

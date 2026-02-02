@@ -152,7 +152,6 @@ import ViewContainer from '../components/ViewContainer.vue'
 import ViewTitle from '../components/ViewTitle.vue'
 import ViewSubtitle from '../components/ViewSubtitle.vue'
 import OptionsForm from '../game/components/menu/OptionsForm.vue'
-import authService from '../../services/api/auth'
 import router from '../../router'
 import Roles from '../game/components/player/Roles.vue'
 import Notifications from "./components/Notifications.vue";
@@ -165,6 +164,7 @@ import type { State } from "@/store";
 import { useStore, type Store } from 'vuex';
 import { makeConfirm } from '@/util/confirm'
 import { useRoute } from 'vue-router';
+import {unauthoriseDiscord} from "@/services/typedapi/auth";
 
 const httpClient = inject(httpInjectionKey)!;
 const toast = inject(toastInjectionKey)!;
@@ -255,18 +255,14 @@ const unlinkDiscordAccount = async () => {
     return
   }
 
-  try {
-    let response = await authService.clearOauthDiscord()
+  const response = await unauthoriseDiscord(httpClient)();
+  if (isOk(response)) {
+    toast.success(`Successfully disconnected from Discord`)
 
-    if (response.status === 200) {
-      toast.success(`Successfully disconnected from Discord`)
-
-      info.value.oauth.discord = undefined;
-    } else {
-      toast.error(`There was a problem disconnecting from Discord, please try again.`)
-    }
-  } catch (err) {
-    console.error(err)
+    info.value.oauth.discord = undefined;
+  } else {
+    console.error(formatError(response));
+    toast.error(`There was a problem disconnecting from Discord, please try again.`)
   }
 };
 

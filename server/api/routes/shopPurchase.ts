@@ -3,7 +3,7 @@ import { DependencyContainer } from "../../services/types/DependencyContainer";
 import ShopController from '../controllers/shop';
 import { MiddlewareContainer } from "../middleware";
 import {SingleRouter} from "../singleRoute";
-import {createShopPurchaseRoutes} from "@solaris-common";
+import {createShopPurchaseRoutes} from "solaris-common";
 import {createRoutes} from "../typedapi/routes";
 
 export default (router: SingleRouter, mw: MiddlewareContainer, validator: ExpressJoiInstance, container: DependencyContainer) => {
