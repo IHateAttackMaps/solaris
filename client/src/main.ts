@@ -24,6 +24,8 @@ import {UserClientSocketHandler} from "./sockets/socketHandlers/user";
 import {UserClientSocketEmitter} from "@/sockets/socketEmitters/user";
 import {userClientSocketEmitterInjectionKey} from "@/sockets/socketEmitters/user";
 import { makeConfirm } from "./util/confirm"
+import type {FrontendConfig} from "@solaris-common";
+import {configInjectionKey} from "@/config";
 
 // Note: This was done to get around an issue where the Steam client
 // had bootstrap as undefined. This also affects the UI template we're using,
@@ -42,78 +44,90 @@ window._solaris = {
   errors: []
 };
 
-const app = createApp(App);
+const init = (config: FrontendConfig) => {
 
-app.config.errorHandler = (err, vm, info) => {
-  if (err instanceof Error) {
-    window._solaris.errors.push(`Vue error: ${err.message}\n ${err.cause} ${info}\n ${err.stack}`);
-  }
-  else {
-    window._solaris.errors.push(`Unknown error: ${JSON.stringify(err)}`);
+  const app = createApp(App);
+
+  app.provide(configInjectionKey, config);
+
+  app.config.errorHandler = (err, vm, info) => {
+    if (err instanceof Error) {
+      window._solaris.errors.push(`Vue error: ${err.message}\n ${err.cause} ${info}\n ${err.stack}`);
+    }
+    else {
+      window._solaris.errors.push(`Unknown error: ${JSON.stringify(err)}`);
+    }
+
+    console.error(err);
+  };
+
+  window.addEventListener("error", (ev) => {
+    window._solaris.errors.push(ev.error + ' ' + ev.message);
+  });
+
+  window.addEventListener("unhandledrejection", (event) => {
+    window._solaris.errors.push(event.reason);
+    reportError(event.reason);
+  });
+
+  const eventBus: EventBus = new ClientEventBus();
+
+  const httpClient = createHttpClient();
+
+  const socket: Socket = io(socketUrl, { withCredentials: true });
+
+  const playerClientSocketEmitter: PlayerClientSocketEmitter = new PlayerClientSocketEmitter(socket);
+  const userClientSocketEmitter: UserClientSocketEmitter = new UserClientSocketEmitter(socket);
+
+  const store: Store<State> = createSolarisStore(eventBus, httpClient, userClientSocketEmitter);
+
+  app.use(store);
+
+  app.use(ToastPlugin);
+
+  const diplomacyClientSocketHandler: DiplomacyClientSocketHandler = new DiplomacyClientSocketHandler(socket, eventBus);
+  const gameClientSocketHandler: GameClientSocketHandler = new GameClientSocketHandler(socket, store, app.config.globalProperties.$toast, eventBus);
+  const playerClientSocketHandler: PlayerClientSocketHandler = new PlayerClientSocketHandler(socket, store, eventBus);
+  const userClientSocketHandler: UserClientSocketHandler = new UserClientSocketHandler(socket, store, eventBus);
+
+  app.provide(userClientSocketEmitterInjectionKey, userClientSocketEmitter);
+  app.provide(playerClientSocketEmitterInjectionKey, playerClientSocketEmitter);
+  app.provide(eventBusInjectionKey, eventBus);
+
+  app.provide(httpInjectionKey, httpClient);
+
+  app.provide(toastInjectionKey, app.config.globalProperties.$toast);
+
+  const clientHandler: ClientHandler = new ClientHandler(socket, store, playerClientSocketEmitter, userClientSocketEmitter);
+
+  const confirm = makeConfirm(store);
+
+  app.config.globalProperties.$confirm = confirm;
+
+  app.config.globalProperties.$isHistoricalMode = function() {
+    return this.$store.state.tick !== this.$store.state.game.state.tick
   }
 
-  console.error(err);
+  app.config.globalProperties.$isMobile = function () {
+    return window.matchMedia('only screen and (max-width: 576px)').matches
+  }
+
+  app.directive('tooltip', function(el, binding) {
+    new bootstrap.Tooltip($(el), {
+      title: binding.value,
+      placement: binding.arg,
+      trigger: 'hover'
+    })
+  })
+
+  app.use(router);
+
+  app.mount('#app');
 };
 
-window.addEventListener("error", (ev) => {
-  window._solaris.errors.push(ev.error + ' ' + ev.message);
+fetch("/api/config").then((resp) => {
+  resp.json().then((config) => {
+    init(config);
+  });
 });
 
-window.addEventListener("unhandledrejection", (event) => {
-  window._solaris.errors.push(event.reason);
-  reportError(event.reason);
-});
-
-const eventBus: EventBus = new ClientEventBus();
-
-const httpClient = createHttpClient();
-
-const socket: Socket = io(socketUrl, { withCredentials: true });
-
-const playerClientSocketEmitter: PlayerClientSocketEmitter = new PlayerClientSocketEmitter(socket);
-const userClientSocketEmitter: UserClientSocketEmitter = new UserClientSocketEmitter(socket);
-
-const store: Store<State> = createSolarisStore(eventBus, httpClient, userClientSocketEmitter);
-
-app.use(store);
-
-app.use(ToastPlugin);
-
-const diplomacyClientSocketHandler: DiplomacyClientSocketHandler = new DiplomacyClientSocketHandler(socket, eventBus);
-const gameClientSocketHandler: GameClientSocketHandler = new GameClientSocketHandler(socket, store, app.config.globalProperties.$toast, eventBus);
-const playerClientSocketHandler: PlayerClientSocketHandler = new PlayerClientSocketHandler(socket, store, eventBus);
-const userClientSocketHandler: UserClientSocketHandler = new UserClientSocketHandler(socket, store, eventBus);
-
-app.provide(userClientSocketEmitterInjectionKey, userClientSocketEmitter);
-app.provide(playerClientSocketEmitterInjectionKey, playerClientSocketEmitter);
-app.provide(eventBusInjectionKey, eventBus);
-
-app.provide(httpInjectionKey, httpClient);
-
-app.provide(toastInjectionKey, app.config.globalProperties.$toast);
-
-const clientHandler: ClientHandler = new ClientHandler(socket, store, playerClientSocketEmitter, userClientSocketEmitter);
-
-const confirm = makeConfirm(store);
-
-app.config.globalProperties.$confirm = confirm;
-
-app.config.globalProperties.$isHistoricalMode = function() {
-  return this.$store.state.tick !== this.$store.state.game.state.tick
-}
-
-app.config.globalProperties.$isMobile = function () {
-  return window.matchMedia('only screen and (max-width: 576px)').matches
-}
-
-app.directive('tooltip', function(el, binding) {
-  new bootstrap.Tooltip($(el), {
-    title: binding.value,
-    placement: binding.arg,
-    trigger: 'hover'
-  })
-})
-
-app.use(router);
-
-app.mount('#app');

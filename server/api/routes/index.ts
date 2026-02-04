@@ -2,6 +2,7 @@ import { createValidator } from "express-joi-validation";
 import { DependencyContainer } from "../../services/types/DependencyContainer";
 import {MiddlewareContainer} from '../middleware';
 
+import registerConfigRoutes from './config';
 import registerAdminRoutes from './admin';
 import registerAuthRoutes from './auth';
 import registerBadgeRoutes from './badges';
@@ -28,6 +29,7 @@ import {SingleRouter} from "../singleRoute";
 export default (router: SingleRouter, container: DependencyContainer, middleware: MiddlewareContainer) => {
     const validator = createValidator({ passError: true });
 
+    registerConfigRoutes(router, middleware, container);
     registerAdminRoutes(router, middleware, validator, container);
     registerAnnouncementsRoutes(router, middleware, validator, container);
     registerAuthRoutes(router, middleware, validator, container);

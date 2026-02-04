@@ -30,6 +30,13 @@ const config: Config = {
         clientSecret: process.env.DISCORD_CLIENT_SECRET,
         oauthRedirectUri: process.env.DISCORD_OAUTH_REDIRECT_URI,
         botToken: process.env.DISCORD_BOT_TOKEN
+    },
+    frontend: {
+        appSocketsHost: process.env.FRONTEND_APP_SOCKETS_HOST || 'api.solaris.games',
+        appApiHost: process.env.FRONTEND_APP_API_HOST || 'https://api.solaris.games',
+        appDocumentationUrl: process.env.FRONTEND_APP_DOCUMENTATION_URL || 'https://solaris-games.github.io/solaris-docs/',
+        appProviderInformationUrl: process.env.FRONTEND_APP_PROVIDER_INFORMATION_URL || '',
+        appDiscordOAuthUrl: process.env.FRONTEND_APP_DISCORD_OAUTH_URL || '',
     }
 };
 

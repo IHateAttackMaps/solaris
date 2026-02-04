@@ -32,6 +32,7 @@ export * from "./types/common/tutorial";
 export * from "./types/common/specialStar";
 export * from "./types/common/rating";
 export * from "./types/common/guild";
+export * from "./types/frontendConfig";
 export * from "./utilities/cast";
 export * from "./utilities/random";
 export * from "./utilities/utils";
