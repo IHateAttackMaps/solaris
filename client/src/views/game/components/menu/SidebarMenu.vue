@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-menu d-none d-md-block" :class="{'header-bar-bg':!$isHistoricalMode(),'bg-dark':$isHistoricalMode()}">
+  <div class="sidebar-menu d-none d-md-block" :class="{'header-bar-bg':!isHistoricalMode,'bg-dark':isHistoricalMode}">
     <div class="sidebar-menu-top">
       <div v-if="!userPlayer && gameIsJoinable">
         <sidebar-menu-item :menuState="MENU_STATES.WELCOME" tooltip="Join Game" iconClass="fas fa-handshake" />
@@ -35,72 +35,60 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, inject } from 'vue';
+import { useStore } from 'vuex';
 import GameHelper from '../../../../services/gameHelper'
 import DiplomacyHelper from '../../../../services/diplomacyHelper'
 import router from '../../../../router'
 import MENU_STATES from '../../../../services/data/menuStates'
 import SidebarMenuItem from './SidebarMenuItem.vue'
+import type {Game} from "@/types/game";
+import {configInjectionKey} from "@/config";
+import {useIsHistoricalMode} from "@/util/reactiveHooks";
 
-export default {
-  components: {
-    'sidebar-menu-item': SidebarMenuItem
-  },
-  data () {
-    return {
-      MENU_STATES: MENU_STATES
-    }
-  },
-  methods: {
-    setMenuState (state, args) {
-      this.$store.commit('setMenuState', {
-        state,
-        args
-      })
-    },
-    goToMainMenu () {
-      router.push({ name: 'main-menu' })
-    }
-  },
-  computed: {
-    game () {
-      return this.$store.state.game
-    },
-    gameIsJoinable () {
-      return this.$store.state.userId != null && GameHelper.gameHasOpenSlots(this.$store.state.game)
-    },
-    userPlayer () {
-      return GameHelper.getUserPlayer(this.$store.state.game)
-    },
-    isLoggedIn () {
-      return this.$store.state.userId != null
-    },
-    isDarkModeExtra () {
-      return GameHelper.isDarkModeExtra(this.$store.state.game)
-    },
-    isDataCleaned () {
-      return this.$store.state.game.state.cleaned
-    },
-    isFormalAlliancesEnabled () {
-      return DiplomacyHelper.isFormalAlliancesEnabled(this.$store.state.game)
-    },
-    isTradeEnabled () {
-      return GameHelper.isTradeEnabled(this.$store.state.game)
-    },
-    documentationUrl () {
-      return import.meta.env.VUE_APP_DOCUMENTATION_URL
-    },
-    canDisplayBottomBar () {
-      return window.innerHeight >= 750
-    },
-    gameIsInProgress () {
-      return GameHelper.isGameInProgress(this.$store.state.game)
-    },
-    gameIsFinished () {
-      return GameHelper.isGameFinished(this.$store.state.game)
-    },
-  }
-}
+const store = useStore();
+
+const isHistoricalMode = useIsHistoricalMode(store);
+
+const config = inject(configInjectionKey)!;
+
+const game = computed<Game>(() => store.state.game);
+
+const setMenuState = (state: string, args: any) => {
+  store.commit('setMenuState', {
+    state,
+    args
+  });
+};
+
+const goToMainMenu = () => {
+  router.push({ name: 'main-menu' });
+};
+
+const gameIsJoinable = computed(() => {
+  return store.state.userId != null && GameHelper.gameHasOpenSlots(game.value);
+});
+
+const userPlayer = computed(() => GameHelper.getUserPlayer(game.value));
+
+const isLoggedIn = computed(() => store.state.userId != null);
+
+const isDarkModeExtra = computed(() => GameHelper.isDarkModeExtra(game.value));
+
+const isDataCleaned = computed(() => store.state.game.state.cleaned);
+
+const isFormalAlliancesEnabled = computed(() => DiplomacyHelper.isFormalAlliancesEnabled(game.value));
+
+const isTradeEnabled = computed(() => GameHelper.isTradeEnabled(game.value));
+
+const documentationUrl = computed(() => config.appDocumentationUrl);
+
+const canDisplayBottomBar = computed(() => window.innerHeight >= 750);
+
+const gameIsInProgress = computed(() => GameHelper.isGameInProgress(game.value));
+
+const gameIsFinished = computed(() => GameHelper.isGameFinished(game.value));
 </script>
 
 <style scoped>
