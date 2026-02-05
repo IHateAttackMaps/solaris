@@ -165,9 +165,11 @@ import { useStore, type Store } from 'vuex';
 import { makeConfirm } from '@/util/confirm'
 import { useRoute } from 'vue-router';
 import {unauthoriseDiscord} from "@/services/typedapi/auth";
+import {configInjectionKey} from "@/config";
 
 const httpClient = inject(httpInjectionKey)!;
 const toast = inject(toastInjectionKey)!;
+const config = inject(configInjectionKey)!;
 
 const route = useRoute();
 const store: Store<State> = useStore();
@@ -177,7 +179,7 @@ const info: Ref<UserPrivate<string> | null> = ref(null);
 const isChangingEmailNotifications = ref(false);
 const isClosingAccount = ref(false);
 
-const discordOauthURL = import.meta.env.VUE_APP_DISCORD_OAUTH_URL;
+const discordOauthURL = config.appDiscordOAuthUrl;
 const isAuthenticatedWithDiscord = computed(() => info.value?.oauth?.discord?.userId != null);
 
 const toggleEmailNotifications = async (enabled: boolean) => {

@@ -36,7 +36,6 @@ import('bootstrap/dist/js/bootstrap.bundle.js').then((mod) => window.bootstrap =
 declare var bootstrap: any; // Hnnngh.
 import('../public/assets/js/app.min.js')
 
-const socketUrl: string = import.meta.env.VUE_APP_SOCKETS_HOST;
 
 window.$ = $;
 
@@ -72,7 +71,9 @@ const init = (config: FrontendConfig) => {
 
   const eventBus: EventBus = new ClientEventBus();
 
-  const httpClient = createHttpClient();
+  const httpClient = createHttpClient(config);
+
+  const socketUrl: string = config.appSocketsHost;
 
   const socket: Socket = io(socketUrl, { withCredentials: true });
 

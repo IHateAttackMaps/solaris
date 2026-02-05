@@ -1,5 +1,6 @@
 import axios from "axios";
 import { v7 as generateV7Uuid } from 'uuid';
+import type {FrontendConfig} from "@solaris-common";
 
 const isISODate = (value: unknown) => {
   return typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/);
@@ -28,8 +29,10 @@ export const buildIdempotencyKey = () => {
   return `${generateV7Uuid()}`;
 };
 
-export const createHttpClient = () => {
-  const client = axios.create();
+export const createHttpClient = (config: FrontendConfig) => {
+  const client = axios.create({
+    baseURL: config.appApiHost,
+  });
 
   client.interceptors.response.use((response) => {
     if (response.data) {
