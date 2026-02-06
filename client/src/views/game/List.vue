@@ -473,7 +473,7 @@
               <tbody>
                   <tr v-for="game in recentlyCompletedGames" v-bind:key="game._id">
                       <td>
-                        <router-link :to="{ path: '/game', query: { id: game._id } }">{{game.settings.general.name}}</router-link>
+                        <router-link :to="{ path: '/game/detail', query: { id: game._id } }">{{game.settings.general.name}}</router-link>
                         <br/>
                         <small>{{getGameTypeFriendlyText(game)}}</small>
                       </td>

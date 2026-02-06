@@ -43,7 +43,7 @@ export const initialize = (starService: IStarService, specialistService: ISpecia
 
   const waypointService = new WaypointService(starService, distanceService, starDistanceService, technologyService, carrierTravelService, starDataService);
 
-  const pathfindingService = new PathfindingService(distanceService, waypointService, starDataService);
+  const pathfindingService = new PathfindingService(distanceService, waypointService, starDataService, technologyService);
 
   return {
     starDataService,

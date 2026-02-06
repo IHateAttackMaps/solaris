@@ -170,6 +170,11 @@ class Waypoints extends EventEmitter<keyof Events, Events> {
     const lastLocation = lastLocationStar == null ? null : lastLocationStar.location
     const distance = GameHelper.getDistanceBetweenLocations(lastLocation, e.location)
 
+    console.log({
+      hyperspaceDistance,
+      distance,
+    });
+
     let canCreateWaypoint = distance <= hyperspaceDistance
 
     if (!canCreateWaypoint && lastLocationStar && lastLocationStar.wormHoleToStarId) {

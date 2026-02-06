@@ -783,7 +783,7 @@
           </div>
         </div>
 
-        <div class="mb-2" v-if="!isAdvancedCustomGalaxy">
+        <div class="mb-2" v-if="!isAdvancedCustomGalaxy && settings.specialGalaxy.specialistCost !== 'none'">
           <label for="startingTechLevelSpecialists" class="col-form-label">Starting Specialists Technology (<span class="text-warning">{{settings.technology.startingTechnologyLevel.specialists}} Specialists</span>) <help-tooltip tooltip="Determines the starting technology levels for all players"/></label>
           <div class="col">
             <input type="range" min="1" max="16" step="1" class="form-range w-100" id="startingTechLevelSpecialists" v-model.number="settings.technology.startingTechnologyLevel.specialists" :disabled="isCreatingGame">
@@ -841,7 +841,7 @@
               {{ opt.text }} Weapons Research
             </option>
           </select>
-          <select class="form-control" id="researchCostsTechSpecialists" v-model="settings.technology.researchCosts.specialists" :disabled="isCreatingGame" v-if="settings.specialGalaxy.specialistsCurrency === 'creditsSpecialists'">
+          <select class="form-control" id="researchCostsTechSpecialists" v-model="settings.technology.researchCosts.specialists" :disabled="isCreatingGame" v-if="settings.specialGalaxy.specialistsCurrency === 'creditsSpecialists' && settings.specialGalaxy.specialistCost !== 'none'">
             <option v-for="opt in options.technology.researchCosts" v-bind:key="opt.value" v-bind:value="opt.value">
               {{ opt.text }} Specialists Research
             </option>
