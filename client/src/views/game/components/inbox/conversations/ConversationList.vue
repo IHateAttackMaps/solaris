@@ -1,6 +1,6 @@
 <template>
 <div class="container pb-2">
-  <loading-spinner :loading="!conversations"/>
+  <loading-spinner :loading="isLoading"/>
 
   <div v-if="conversations">
     <div class="row">
@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <div class="text-center pt-2" v-if="!conversations.length">
+    <div class="text-center pt-2" v-if="conversations?.length === 0">
         No Conversations.
     </div>
 
@@ -54,6 +54,7 @@ const game = computed<Game>(() => store.state.game);
 
 const canCreateConversation = computed(() => game.value.settings.general.playerLimit > 2 && !gameHelper.isTutorialGame(game.value));
 
+const isLoading = ref(false);
 const conversations = ref<ConversationOverview<string>[]>([]);
 
 const orderedConversations = computed(() => {
@@ -74,6 +75,7 @@ const orderedConversations = computed(() => {
 });
 
 const refreshList = async () => {
+  isLoading.value = true;
   conversations.value = [];
 
   const response = await listConversations(httpClient)(game.value._id);
@@ -82,6 +84,8 @@ const refreshList = async () => {
   } else {
     console.error(formatError(response));
   }
+
+  isLoading.value = false;
 };
 
 const onRefreshClicked = refreshList;
