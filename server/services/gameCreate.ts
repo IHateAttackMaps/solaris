@@ -323,12 +323,14 @@ export default class GameCreateService {
             settings.technology.researchCosts.specialists = 'none';
         }
 
-        // Ensure that specialist bans are cleared if specialists are disabled.
+        // Ensure that specialist bans and tech are cleared if specialists are disabled.
         if (settings.specialGalaxy.specialistCost === 'none') {
             settings.specialGalaxy.specialistBans = {
                 star: [],
                 carrier: []
             };
+            settings.technology.researchCosts.specialists = 'none';
+            settings.technology.startingTechnologyLevel.specialists = 0;
         }
 
         // Validate research costs
