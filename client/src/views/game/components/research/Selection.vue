@@ -23,7 +23,7 @@
       <label class="col col-form-label" title="Current research ETA">ETA:</label>
       <div class="col text-end">
         <label class="col-form-label">
-          <timer :ticks="player.currentResearchTicksEta || 0" />
+          <timer :showETA="true" :ticks="player.currentResearchTicksEta || 0" />
         </label>
       </div>
     </div>
@@ -44,7 +44,7 @@
       <label class="col col-form-label" title="Next research ETA">ETA:</label>
       <div class="col text-end">
         <label class="col-form-label">
-          <timer :ticks="player.nextResearchTicksEta || 0" />
+          <timer :showETA="true" :ticks="player.nextResearchTicksEta || 0" />
         </label>
       </div>
     </div>
@@ -73,6 +73,8 @@ const isHistoricalMode = useIsHistoricalMode(store);
 const game = computed<Game>(() => store.state.game);
 const player = computed(() => GameHelper.getUserPlayer(game.value)!);
 const isGameFinished = computed(() => GameHelper.isGameFinished(game.value));
+
+const tick = computed(() => game.value.state.tick);
 
 type Option = { text: string, value: ResearchType };
 

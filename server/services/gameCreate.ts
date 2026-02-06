@@ -323,12 +323,14 @@ export default class GameCreateService {
             settings.technology.researchCosts.specialists = 'none';
         }
 
-        // Ensure that specialist bans are cleared if specialists are disabled.
+        // Ensure that specialist bans and tech are cleared if specialists are disabled.
         if (settings.specialGalaxy.specialistCost === 'none') {
             settings.specialGalaxy.specialistBans = {
                 star: [],
                 carrier: []
             };
+            settings.technology.researchCosts.specialists = 'none';
+            settings.technology.startingTechnologyLevel.specialists = 0;
         }
 
         // Validate research costs
@@ -381,7 +383,7 @@ export default class GameCreateService {
 
             if (awardRankTo === 'top_n' && (!awardRankToTopN || awardRankToTopN < 1 || awardRankToTopN > Math.floor(settings.general.playerLimit / 2))) {
                 throw new ValidationError('Invalid top N value for awarding rank.');
-            } else if (!['all', 'winner', 'top_n'].includes(awardRankTo)) {
+            } else if (!['all', 'winner', 'top_n', 'noRankLoss'].includes(awardRankTo)) {
                 throw new ValidationError('Invalid award rank to setting.');
             }
         }

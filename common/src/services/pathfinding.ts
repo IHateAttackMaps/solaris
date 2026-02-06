@@ -6,6 +6,7 @@ import type {Carrier} from "../types/common/carrier";
 import type {Player} from "../types/common/player";
 import type {Id} from "../types/id";
 import type {Star} from "../types/common/star";
+import {TechnologyService} from "./technology";
 
 interface Node<ID> {
     id: ID,
@@ -20,15 +21,18 @@ export class PathfindingService<ID extends Id> {
     distanceService: DistanceService;
     waypointService: WaypointService<ID>;
     starDataService: StarDataService;
+    technologyService: TechnologyService;
 
-    constructor(distanceService: DistanceService, waypointService: WaypointService<ID>, starDataService: StarDataService) {
+    constructor(distanceService: DistanceService, waypointService: WaypointService<ID>, starDataService: StarDataService, technologyService: TechnologyService) {
         this.distanceService = distanceService;
         this.waypointService = waypointService;
         this.starDataService = starDataService;
+        this.technologyService = technologyService;
     }
 
     calculateShortestRoute(game: Game<ID>, player: Player<ID>, carrier: Carrier<ID>, sourceStarId: string, destinStarId: string): Node<ID>[] {
-        const hyperspaceDistance = this.distanceService.getHyperspaceDistance(game, player.research.hyperspace.level);
+        const effectiveTechs = this.technologyService.getCarrierEffectiveTechnologyLevels(game, carrier, true);
+        const hyperspaceDistance = this.distanceService.getHyperspaceDistance(game, effectiveTechs.hyperspace);
 
         const graph: Node<ID>[] = game.galaxy.stars.map(star => {
             return {

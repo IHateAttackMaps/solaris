@@ -234,7 +234,7 @@
           <label for="nebula-frequency" class="col col-form-label">Nebula Frequency</label>
           <div class="col">
             <input type="range" min="0" max="16" step="1" class="form-range w-100" id="nebula-frequency"
-              v-model="settings.map.background.nebulaFrequency" :disabled="isSavingSettings">
+              v-model.number="settings.map.background.nebulaFrequency" :disabled="isSavingSettings">
           </div>
         </div>
 
@@ -242,7 +242,7 @@
           <label for="nebula-density" class="col col-form-label">Nebula Density</label>
           <div class="col">
             <input type="range" min="0" max="8" step="1" class="form-range w-100" id="nebula-density"
-              v-model="settings.map.background.nebulaDensity" :disabled="isSavingSettings">
+              v-model.number="settings.map.background.nebulaDensity" :disabled="isSavingSettings">
           </div>
         </div>
 
@@ -250,7 +250,7 @@
           <label for="nebula-opacity" class="col col-form-label">Nebula Opacity</label>
           <div class="col">
             <input type="range" min="0.0" max="1.0" step="0.0625" class="form-range w-100" id="nebula-opacity"
-              v-model="settings.map.background.nebulaOpacity" :disabled="isSavingSettings">
+              v-model.number="settings.map.background.nebulaOpacity" :disabled="isSavingSettings">
           </div>
         </div>
 
@@ -258,7 +258,7 @@
           <label for="stars-opacity" class="col col-form-label">Stars Opacity</label>
           <div class="col">
             <input type="range" min="0.0" max="1.0" step="0.0625" class="form-range w-100" id="stars-opacity"
-              v-model="settings.map.background.starsOpacity" :disabled="isSavingSettings">
+              v-model.number="settings.map.background.starsOpacity" :disabled="isSavingSettings">
           </div>
         </div>
 
@@ -289,7 +289,7 @@
             <label for="nebula-speed" class="col col-form-label">Nebula Speed</label>
             <div class="col">
               <input type="range" min="0.0" max="2.0" step="0.125" class="form-range w-100" id="nebula-speed"
-                v-model="settings.map.background.nebulaMovementSpeed" :disabled="isSavingSettings">
+                v-model.number="settings.map.background.nebulaMovementSpeed" :disabled="isSavingSettings">
             </div>
           </div>
         </div>

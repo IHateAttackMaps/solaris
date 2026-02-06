@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { ref, type Ref, inject, onMounted } from 'vue';
-import { type UserAvatar } from '@solaris-common';
+import {sorterByProperty, type UserAvatar} from '@solaris-common';
 import { formatError, httpInjectionKey, isOk } from '@/services/typedapi';
 import { listMyAvatars } from '@/services/typedapi/user';
 
@@ -49,7 +49,13 @@ const reloadAvatars = async () => {
   const response = await listMyAvatars(httpClient)();
 
   if (isOk(response)) {
-    avatars.value = response.data.sort((a, b) => a.purchased ? -1 : 1 || a.id - b.id);
+    const purchased = response.data.filter(a => a.purchased);
+    const notPurchased = response.data.filter(a => !a.purchased);
+
+    const sorter = sorterByProperty('id');
+
+    avatars.value = purchased.sort(sorter).concat(notPurchased.sort(sorter));
+    console.log(avatars.value);
   } else {
     console.error(formatError(response));
   }
@@ -73,7 +79,7 @@ const getAvatarImage = () => {
 
 const nextAvatar = () => {
   if (!avatar.value) {
-    avatar.value = avatars.value.find(a => a.id === 21)!;
+    avatar.value = avatars.value[0];
   } else {
     let currentIndex = avatars.value.indexOf(avatar.value);
 
@@ -91,7 +97,7 @@ const nextAvatar = () => {
 
 const prevAvatar = () => {
   if (!avatar.value) {
-    avatar.value = avatars.value.find(a => a.id === 21)!;
+    avatar.value = avatars.value[avatars.value.length - 1];
   } else {
     let currentIndex = avatars.value.indexOf(avatar.value);
 

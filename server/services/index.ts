@@ -246,7 +246,7 @@ export default (config: Config,
     const specialistBanService = new SpecialistBanService(specialistService);
     const specialistHireService = new SpecialistHireService(gameRepository, specialistService, userAchievementService, cullWaypointsService, playerCreditsService, starService, gameTypeService, specialistBanService, technologyService, statisticsService, starDataService);
     const shipTransferService = new ShipTransferService(gameRepository, carrierService, starService);
-    const pathfindingService = new PathfindingService(distanceService, waypointService, starDataService);
+    const pathfindingService = new PathfindingService(distanceService, waypointService, starDataService, technologyService);
     const basicAIService = new BasicAIService(starUpgradeService);
     const aiService = new AIService(starUpgradeService, carrierService, starService, distanceService, waypointService, combatService, shipTransferService, technologyService, playerService, playerAfkService, reputationService, diplomacyService, shipService, playerStatisticsService, basicAIService, pathfindingService, saveWaypointsService, starDataService);
     const battleRoyaleService = new BattleRoyaleService(starService, carrierService, mapService, starDistanceService, cullWaypointsService, carrierMovementService);
