@@ -153,13 +153,19 @@ export default class ScheduleBuyService extends EventEmitter {
 
         await this.gameRepo.updateOne({
             _id: game._id,
-            'galaxy.players._id': player._id,
-            'galaxy.players.scheduledActions._id': actionId
-
         }, {
             $set: {
-                'galaxy.players.$.scheduledActions.$[].repeat': action.repeat
+                'galaxy.players.$[p].scheduledActions.$[a].repeat': action.repeat
             }
+        }, {
+            arrayFilters: [
+                {
+                    "p._id": player._id,
+                },
+                {
+                    "a._id": actionId,
+                },
+            ]
         });
         return action;
     }
