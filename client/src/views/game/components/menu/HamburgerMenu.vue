@@ -88,7 +88,6 @@ import GameHelper from '../../../../services/gameHelper'
 import DiplomacyHelper from '../../../../services/diplomacyHelper'
 import router from '../../../../router'
 import MENU_STATES from '../../../../services/data/menuStates'
-import gameHelper from "../../../../services/gameHelper";
 import MenuEventBusEventNames from '../../../../eventBusEventNames/menu'
 import {inject, computed} from 'vue'
 import {useStore} from 'vuex';

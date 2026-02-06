@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:docker": "DEV_SERVER_URL=http://api:3000/ vite --host",
     "dev:network": "vite --host",
     "build": "vue-tsc --noEmit && vite build",
     "serve": "vite preview",
