@@ -64,7 +64,7 @@
 <script>
 import GameHelper from '../../../../services/gameHelper'
 import GridHelper from '../../../../services/gridHelper'
-import SortInfo from '../../../../services/data/sortInfo'
+import { SortInfo } from '../../../../services/data/sortInfo'
 import StarRowVue from './StarRow.vue'
 
 export default {

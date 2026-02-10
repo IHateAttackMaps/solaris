@@ -1,5 +1,9 @@
+import type {SortInfo} from "@/services/data/sortInfo";
+
+type FallbackF<A> = (o: Object, k: string) => A;
+
 class GridHelper {
-  getNestedObject(nestedObj, pathArr, missingPropertyFallbackFunc) {
+  getNestedObject<A>(nestedObj: Object, pathArr: string[] | string, missingPropertyFallbackFunc: FallbackF<A>) {
     if (!Array.isArray(pathArr)) {
       pathArr = pathArr.split(',')
     }
@@ -9,7 +13,7 @@ class GridHelper {
                           nestedObj);
   }
 
-  dynamicSort(data, sortInfo, missingPropertyFallbackFunc) {
+  dynamicSort<A, El extends Object>(data: Array<El>, sortInfo: SortInfo, missingPropertyFallbackFunc: FallbackF<A>) {
     if (sortInfo?.propertyPaths != null) {
       data = [...data].sort((a, b) => this.dynamicCompare(a, b, sortInfo, missingPropertyFallbackFunc));
     }
@@ -17,7 +21,7 @@ class GridHelper {
     return data;
   }
 
-  dynamicCompare(a, b, sortInfo, missingPropertyFallbackFunc) {
+  dynamicCompare<A, B extends Object>(a: B, b: B, sortInfo: SortInfo, missingPropertyFallbackFunc: FallbackF<A>) {
     let result = 0;
 
     for (let propertyPath of sortInfo.propertyPaths) {
@@ -34,15 +38,15 @@ class GridHelper {
     return sortInfo.sortAscending ? result : -result;
   }
 
-  compare(a, b) {
+  compare<A>(a: A, b: A) {
       if (a === b) {
         return 0;
       }
       // Treat null values as smaller than anything else.
-      else if (a === null) {
+      else if (a === null || a === undefined) {
         return -1;
       }
-      else if (b === null) {
+      else if (b === null || b === undefined) {
         return 1;
       }
       else {
@@ -58,7 +62,7 @@ class GridHelper {
     }
   }
 
-  getObjValue(obj, key, missingPropertyFallbackFunc) {
+  getObjValue<A>(obj: Object, key: string, missingPropertyFallbackFunc: FallbackF<A>) {
     return ((obj != null && obj[key] === undefined && missingPropertyFallbackFunc != null) ? missingPropertyFallbackFunc(obj, key) : obj?.[key]) ?? null;
   }
 }

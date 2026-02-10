@@ -52,7 +52,7 @@
 import GameHelper from '../../../../services/gameHelper'
 import GridHelper from '../../../../services/gridHelper'
 import ShipRowVue from './ShipRow.vue'
-import SortInfo from '../../../../services/data/sortInfo'
+import { SortInfo } from '../../../../services/data/sortInfo'
 
 export default {
   components: {

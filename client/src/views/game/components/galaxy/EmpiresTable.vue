@@ -46,7 +46,7 @@
 import EmpireRowVue from './EmpireRow.vue'
 import GameHelper from '../../../../services/gameHelper'
 import GridHelper from '../../../../services/gridHelper'
-import SortInfo from '../../../../services/data/sortInfo'
+import { SortInfo } from '../../../../services/data/sortInfo'
 
 export default {
   components: {

@@ -50,7 +50,7 @@
 import GameHelper from '../../../../services/gameHelper'
 import GridHelper from '../../../../services/gridHelper'
 import BulkInfrastructureUpgradeStarTableRow from './BulkInfrastructureUpgradeStarTableRow.vue'
-import SortInfo from '../../../../services/data/sortInfo'
+import { SortInfo } from '../../../../services/data/sortInfo'
 
 export default {
   components: {

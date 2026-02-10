@@ -48,7 +48,7 @@
 import GameHelper from '../../../../services/gameHelper'
 import GridHelper from '../../../../services/gridHelper'
 import CarrierRowVue from './CarrierRow.vue'
-import SortInfo from '../../../../services/data/sortInfo'
+import { SortInfo } from '../../../../services/data/sortInfo'
 
 export default {
   components: {

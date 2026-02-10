@@ -1,16 +1,20 @@
-export default class SortInfo {
-  propertyPaths;
-  sortAscending;
+export class SortInfo {
+  propertyPaths: string[];
+  sortAscending: boolean;
 
-  constructor(propertyPaths, sortAscending) {
+  constructor(propertyPaths: string[], sortAscending: boolean) {
     this.propertyPaths = propertyPaths ?? null;
     this.sortAscending = sortAscending ?? true;
   }
 
-  swapSort(propertyPaths) {
+  swapSort(propertyPaths: string[] | string) {
     // If sorting by a new column, reset the sort.
     if (JSON.stringify(this.propertyPaths) !== JSON.stringify(propertyPaths)) {
-      this.propertyPaths = !Array.isArray(propertyPaths[0]) ? [propertyPaths] : propertyPaths;
+      if (Array.isArray(propertyPaths[0])) {
+        this.propertyPaths = propertyPaths as string[];
+      } else {
+        this.propertyPaths = [propertyPaths as string];
+      }
       this.sortAscending = true
     } else {
       // Otherwise if we are sorting by the same column, flip the sort direction.
@@ -18,8 +22,8 @@ export default class SortInfo {
     }
   }
 
-  static fromJSON(jsonSortInfo, defaultSortInfo) {
-    let parsedSortInfo = null;
+  static fromJSON(jsonSortInfo: string, defaultSortInfo: SortInfo) {
+    let parsedSortInfo: SortInfo | null = null;
 
     try {
       parsedSortInfo = jsonSortInfo != undefined ? JSON.parse(jsonSortInfo) : null;
