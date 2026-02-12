@@ -121,5 +121,5 @@ jobs:
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.CLIENT_IMAGE_NAME}}
-          subject-digest: ${{ steps.push-jobs.outputs.digest }}
+          subject-digest: ${{ steps.push-client.outputs.digest }}
           push-to-registry: true
