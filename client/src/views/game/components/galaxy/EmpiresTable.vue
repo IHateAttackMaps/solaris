@@ -50,7 +50,7 @@ import GameHelper from '../../../../services/gameHelper'
 import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
 import type {Game, Player, Star} from "@/types/game";
 import {useLocalStorage} from "@/util/reactiveHooks";
-import {useSortedData, useSortedPlayerData} from "@/views/game/components/galaxy/table";
+import {useSortedPlayerData} from "@/views/game/components/galaxy/table";
 
 const SORT_INFO_KEY = 'galaxy_empires_sortInfo';
 

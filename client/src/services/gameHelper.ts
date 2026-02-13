@@ -5,7 +5,7 @@ import {
   type GameInfoState,
   type GameSettingsGalaxyBase,
   type Location,
-  type MapObject, type PlayerDebtEventData,
+  type MapObject, type PlayerDebtEventData, type ResearchTypeNotRandom,
   type Team
 } from '@solaris-common';
 import type {RulerPoint} from '@/types/ruler';
@@ -593,7 +593,7 @@ class GameHelper {
     return false;
   }
 
-  playerHasLowestTechLevel(game: Game, techKey, player) {
+  playerHasLowestTechLevel(game: Game, techKey: ResearchTypeNotRandom, player: Player) {
     const levels: number[] = [...new Set(game.galaxy.players
       .filter(p => p.research != null)
       .map(p => {
@@ -610,7 +610,7 @@ class GameHelper {
     return minLevel === player.research[techKey].level
   }
 
-  playerHasHighestTechLevel(game: Game, techKey, player) {
+  playerHasHighestTechLevel(game: Game, techKey: ResearchTypeNotRandom, player: Player) {
     const levels: number[] = [...new Set(game.galaxy.players
       .filter(p => p.research != null)
       .map(p => {
@@ -625,18 +625,6 @@ class GameHelper {
     const maxLevel = levels.sort((a, b) => b - a)[0]
 
     return maxLevel === player.research[techKey].level
-  }
-
-  userPlayerHasHighestTechLevel(game: Game, techKey) {
-    const userPlayer = this.getUserPlayer(game)
-
-    return this.playerHasHighestTechLevel(game, techKey, userPlayer)
-  }
-
-  userPlayerHasLowestTechLevel(game: Game, techKey) {
-    const userPlayer = this.getUserPlayer(game)
-
-    return this.playerHasLowestTechLevel(game, techKey, userPlayer)
   }
 
   getPlayerStatus(player) {
