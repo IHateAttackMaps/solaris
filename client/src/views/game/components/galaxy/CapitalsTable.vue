@@ -48,13 +48,14 @@
 
 <script setup lang="ts">
 import GameHelper from '../../../../services/gameHelper'
-import GridHelper from '../../../../services/gridHelper'
 import CapitalRow from './CapitalRow.vue'
-import { SortInfo } from '../../../../services/data/sortInfo'
-import { ref, inject,  onMounted, onUnmounted, computed } from 'vue';
+import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import type {Game, Star} from "@/types/game";
 import {loadLocalPreference, storeLocalPreference} from "@/util/localPreference";
+import {useSortedData} from "@/views/game/components/galaxy/table";
+import {useLocalStorage} from "@/util/reactiveHooks";
 
 const emit = defineEmits<{
   onOpenStarDetailRequested: [starId: string],
@@ -62,53 +63,30 @@ const emit = defineEmits<{
 
 const SORT_INFO_KEY = "galaxy_capitals_sortInfo";
 
-const defaultSortInfo = new SortInfo([['name']], true);
+const defaultSortInfo = createSortInfo([['name']], true);
 
 const store = useStore();
 const game = computed<Game>(() => store.state.game);
 
-const sortInfo = ref(new SortInfo([['name']], true));
+const sortInfo = useLocalStorage(SORT_INFO_KEY, defaultSortInfo);
+
 const showAll = ref(false);
 const searchFilter = ref('');
 
-const isGameFinished = computed(() => GameHelper.isGameFinished(game.value));
 const userPlayer = computed(() => GameHelper.getUserPlayer(game.value));
-const playersMap = computed(() => new Map(game.value.galaxy.players.map(p => [p._id, p])));
-const tableData = computed(() => game.value.galaxy.stars);
-const filteredTableData = computed(() => {
-  let td = tableData.value;
+const tableData = computed(() => game.value.galaxy.stars.filter(s => s.homeStar));
 
-  const isHomeStar = (s: Star) => s.homeStar;
-  const isSearchFilterMatch = (s: Star) => s.name.toLowerCase().includes(searchFilter.value.toLowerCase());
+const filter = (s: Star) => s.name.toLowerCase().includes(searchFilter.value.toLowerCase());
 
-  if (!showAll.value && userPlayer.value !== null && userPlayer.value !== undefined) {
-    td = tableData.value.filter(s => s.ownedByPlayerId === userPlayer.value!._id && isSearchFilterMatch(s) && isHomeStar(s));
-  }
-  else {
-    return tableData.value.filter(s => isSearchFilterMatch(s) && isHomeStar(s));
-  }
-
-  return td;
-})
-
-const sortedFilteredTableData = computed(() => GridHelper.dynamicSort(filteredTableData.value, sortInfo.value, missingPropertyFallbackFunc));
+const sortedFilteredTableData = useSortedData(tableData, sortInfo, showAll, game, filter);
 
 const toggleShowAll = () => showAll.value = !showAll.value;
 
 const sort = (...propertyPaths: string[][]) => {
-  sortInfo.value = new SortInfo(propertyPaths, sortInfo.value.sortAscending);
+  sortInfo.value = swapSort(sortInfo.value, propertyPaths);
 };
 
 const onOpenStarDetailRequested = (starId: string) => emit('onOpenStarDetailRequested', starId);
-
-const missingPropertyFallbackFunc = (obj: Object, key: string) => {
-  switch (key) {
-    case 'ownedByPlayer':
-      return playersMap.value.get(obj['ownedByPlayerId']);
-    default:
-      return null;
-  }
-};
 
 onMounted(() => {
   sortInfo.value = loadLocalPreference(SORT_INFO_KEY, defaultSortInfo);
