@@ -1,5 +1,5 @@
 import { type Ref, computed } from "vue";
-import {SortInfo} from "@/services/data/sortInfo";
+import { type SortInfo } from "@/services/data/sortInfo";
 import GridHelper from "@/services/gridHelper";
 import type {Game, Player} from "@/types/game";
 import type {MapObject} from "@solaris-common";

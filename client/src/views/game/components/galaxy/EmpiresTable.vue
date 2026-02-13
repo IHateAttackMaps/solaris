@@ -42,78 +42,45 @@
 </div>
 </template>
 
-<script>
-import EmpireRowVue from './EmpireRow.vue'
+<script setup lang="ts">
+import EmpireRow from './EmpireRow.vue'
 import GameHelper from '../../../../services/gameHelper'
-import GridHelper from '../../../../services/gridHelper'
-import { SortInfo } from '../../../../services/data/sortInfo'
+import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
+import type {Game} from "@/types/game";
+import {useLocalStorage} from "@/util/reactiveHooks";
+import {useSortedData} from "@/views/game/components/galaxy/table";
 
-export default {
-  components: {
-    'empire-row': EmpireRowVue
-  },
-  data: function () {
-    let defaultSortInfo = new SortInfo([['alias']], true);
+const SORT_INFO_KEY = 'galaxy_empires_sortInfo';
 
-    return {
-      showAll: false,
-      defaultSortInfo: defaultSortInfo,
-      sortInfo: new SortInfo(defaultSortInfo.propertyPaths, defaultSortInfo.sortAscending),
-      sortInfoKey: 'galaxy_empires_sortInfo',
-      searchFilter: ''
-    }
-  },
-  mounted () {
-    this.showAll = this.userPlayer != null;
-    this.sortInfo = SortInfo.fromJSON(localStorage.getItem(this.sortInfoKey), this.defaultSortInfo);
-  },
-  destroyed () {
-    localStorage.setItem(this.sortInfoKey, JSON.stringify(this.sortInfo));
-  },
-  methods: {
-    toggleShowAll () {
-      this.showAll = !this.showAll;
-    },
-    onOpenPlayerDetailRequested (e) {
-      this.$emit('onOpenPlayerDetailRequested', e)
-    },
-    sort (...propertyPaths) {
-      this.sortInfo.swapSort(propertyPaths);
-    }
-  },
-  computed: {
-    userPlayer () {
-      return GameHelper.getUserPlayer(this.$store.state.game)
-    },
-    tableData () {
-      return this.$store.state.game.galaxy.players.map(p => {
-        return {
-          _id: p._id,
-          alias: p.alias,
-          defeated: p.defeated,
-          ...p.stats
-        }
-      });
-    },
-    filteredTableData() {
-      let tableData = this.tableData;
+const emit = defineEmits<{
+  onOpenPlayerDetailRequested: [playerId: string],
+}>();
 
-      let isSearchFilterMatch = p => p.alias.toLowerCase().includes(this.searchFilter.toLowerCase());
+const store = useStore();
+const game = computed<Game>(() => store.state.game);
 
-      if (!this.showAll && this.userPlayer != null) {
-        tableData = tableData.filter(p => p._id === this.userPlayer._id && isSearchFilterMatch(p));
-      }
-      else {
-        tableData = tableData.filter(isSearchFilterMatch);
-      }
+const defaultSortInfo = createSortInfo([['alias']], true);
 
-      return tableData;
-    },
-    sortedFilteredTableData () {
-      return GridHelper.dynamicSort(this.filteredTableData, this.sortInfo);
-    }
-  }
-}
+const showAll = ref(false);
+const sortInfo = useLocalStorage(SORT_INFO_KEY, defaultSortInfo);
+const searchFilter = ref('');
+
+const userPlayer = computed(() => GameHelper.getUserPlayer(game.value));
+const tableData = computed(() => game.value.galaxy.players);
+
+const toggleShowAll = () => showAll.value = !showAll.value;
+
+const onOpenPlayerDetailRequested = (e) => emit('onOpenPlayerDetailRequested', e);
+
+const sort = (...propertyPaths) => {
+  sortInfo.value = swapSort(sortInfo.value, propertyPaths);
+};
+
+const sortedFilteredTableData = useSortedData(tableData, sortInfo, showAll, game, filter);
+
+onMounted(() => {
+  showAll.value = userPlayer.value != null;
+});
 </script>
 
 <style scoped>
