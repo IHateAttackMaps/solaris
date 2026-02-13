@@ -53,7 +53,6 @@ import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import type {Game, Star} from "@/types/game";
-import {loadLocalPreference, storeLocalPreference} from "@/util/localPreference";
 import {useSortedData} from "@/views/game/components/galaxy/table";
 import {useLocalStorage} from "@/util/reactiveHooks";
 
@@ -89,12 +88,7 @@ const sort = (...propertyPaths: string[][]) => {
 const onOpenStarDetailRequested = (starId: string) => emit('onOpenStarDetailRequested', starId);
 
 onMounted(() => {
-  sortInfo.value = loadLocalPreference(SORT_INFO_KEY, defaultSortInfo);
   showAll.value = !Boolean(userPlayer.value);
-
-  onUnmounted(() => {
-    storeLocalPreference(SORT_INFO_KEY, sortInfo.value);
-  });
 });
 </script>
 
