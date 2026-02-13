@@ -23,9 +23,28 @@ export const useSortedData = <A extends MapObject<string>>(tableData: Ref<A[]>, 
   const filteredTableData = computed(() => {
     let td = tableData.value;
 
-
     if (!showAll.value && userPlayer.value !== undefined) {
       td = tableData.value.filter(s => s.ownedByPlayerId === userPlayer.value!._id && searchFilter(s));
+    }
+    else {
+      return tableData.value.filter(searchFilter);
+    }
+
+    return td;
+  })
+
+  return computed(() => GridHelper.dynamicSort(filteredTableData.value, sortInfo.value, missingPropertyFallbackFunc(playersMap)));
+};
+
+export const useSortedPlayerData = (tableData: Ref<Player[]>, sortInfo: Ref<SortInfo>, showAll: Ref<boolean>, game: Ref<Game>, searchFilter: (v: Player) => boolean) => {
+  const userPlayer = computed(() => GameHelper.getUserPlayer(game.value));
+  const playersMap = usePlayerMap(game);
+
+  const filteredTableData = computed(() => {
+    let td = tableData.value;
+
+    if (!showAll.value && userPlayer.value !== undefined) {
+      td = tableData.value.filter(s => s._id === userPlayer.value!._id && searchFilter(s));
     }
     else {
       return tableData.value.filter(searchFilter);

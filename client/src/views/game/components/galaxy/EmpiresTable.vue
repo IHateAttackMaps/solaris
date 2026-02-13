@@ -43,12 +43,14 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import EmpireRow from './EmpireRow.vue'
 import GameHelper from '../../../../services/gameHelper'
 import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
-import type {Game} from "@/types/game";
+import type {Game, Player, Star} from "@/types/game";
 import {useLocalStorage} from "@/util/reactiveHooks";
-import {useSortedData} from "@/views/game/components/galaxy/table";
+import {useSortedData, useSortedPlayerData} from "@/views/game/components/galaxy/table";
 
 const SORT_INFO_KEY = 'galaxy_empires_sortInfo';
 
@@ -76,7 +78,9 @@ const sort = (...propertyPaths) => {
   sortInfo.value = swapSort(sortInfo.value, propertyPaths);
 };
 
-const sortedFilteredTableData = useSortedData(tableData, sortInfo, showAll, game, filter);
+const filter = (p: Player) => p.alias.toLowerCase().includes(searchFilter.value.toLowerCase());
+
+const sortedFilteredTableData = useSortedPlayerData(tableData, sortInfo, showAll, game, filter);
 
 onMounted(() => {
   showAll.value = userPlayer.value != null;
