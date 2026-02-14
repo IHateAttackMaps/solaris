@@ -1,14 +1,17 @@
-import {Game} from "./types/Game";
-import {Carrier} from "./types/Carrier";
-import {Star} from "./types/Star";
+import { Game } from "./types/Game";
+import { Carrier } from "./types/Carrier";
+import { Star } from "./types/Star";
 import Repository from "./repository";
 import StarService from "./star";
 import PlayerService from "./player";
 import { WaypointService } from 'solaris-common';
-import {Player} from "./types/Player";
+import { Player } from "./types/Player";
 import { CarrierTravelService } from 'solaris-common';
 import { StarDataService } from "solaris-common";
-import {DBObjectId} from "./types/DBObjectId";
+import { DBObjectId } from "./types/DBObjectId";
+import ScanningService from "./scanning";
+import { KDTree } from "../utils/kdTree";
+import { DistanceService } from 'solaris-common';
 
 export default class CullWaypointsService {
     gameRepo: Repository<Game>;
@@ -17,6 +20,8 @@ export default class CullWaypointsService {
     waypointService: WaypointService<DBObjectId>;
     carrierTravelService: CarrierTravelService<DBObjectId>;
     starDataService: StarDataService;
+    scanningService: ScanningService;
+    distanceService: DistanceService;
 
     constructor(
         gameRepo: Repository<Game>,
@@ -25,6 +30,8 @@ export default class CullWaypointsService {
         waypointService: WaypointService<DBObjectId>,
         carrierTravelService: CarrierTravelService<DBObjectId>,
         starDataService: StarDataService,
+        scanningService: ScanningService,
+        distanceService: DistanceService,
     ) {
         this.gameRepo = gameRepo;
         this.starService = starService;
@@ -32,14 +39,25 @@ export default class CullWaypointsService {
         this.waypointService = waypointService;
         this.carrierTravelService = carrierTravelService;
         this.starDataService = starDataService;
+        this.scanningService = scanningService;
+        this.distanceService = distanceService;
     }
 
     sanitiseAllCarrierWaypointsByScanningRange(game: Game) {
+        // TODO: Calculate during tick processing and load stored tree
+        const kdTree = new KDTree(this.distanceService, game.galaxy.stars);
         const players = this._getPlayersWithOwnedOrInOrbitStars(game);
+
+        const starScanningMap = new Map<Player, Set<Star>>();
+        for (const player of players.values()) {
+            starScanningMap.set(player.player, this.scanningService.getStarSetByScanningRange(game, [player.player], kdTree));
+        }
+
         game.galaxy.carriers
             .filter(c => c.waypoints.length && c.ownedByPlayerId)
             .forEach(c => {
-                this._checkCarrierRoute(game, c, players.get(c.ownedByPlayerId!.toString())!);
+                const player = players.get(c.ownedByPlayerId!.toString())!;
+                this._checkCarrierRoute(game, c, player, starScanningMap.get(player.player)!);
             });
     }
 
@@ -74,7 +92,7 @@ export default class CullWaypointsService {
 
         // If in transit, then cull starting from the 2nd waypoint.
         let startingWaypointIndex = this.carrierTravelService.isInTransit(carrier) ? 1 : 0;
-        if(startingWaypointIndex >= carrier.waypoints.length) return null;
+        if (startingWaypointIndex >= carrier.waypoints.length) return null;
 
         let startingWaypoint = carrier.waypoints[startingWaypointIndex];
 
@@ -116,15 +134,15 @@ export default class CullWaypointsService {
         }
     }
 
-    _checkCarrierRoute(game: Game, carrier: Carrier, player: { player: Player, stars: Star[], inRange: string[] }) {
+    _checkCarrierRoute(game: Game, carrier: Carrier, player: { player: Player, stars: Star[], inRange: string[] }, scannedStarSet: Set<Star>) {
         let startIndex = this.carrierTravelService.isInTransit(carrier) ? 1 : 0;
         for (let index = startIndex; index < carrier.waypoints.length; index++) {
             const waypoint = carrier.waypoints[index];
-            if(waypoint.destination.toString() in player.inRange) continue;
+            if (waypoint.destination.toString() in player.inRange) continue;
             const waypointStar = this.starService.getById(game, waypoint.destination);
-            if(this._checkWaypointStarInRange(game, waypointStar, player)){
+            if (this.scanningService.isStarWithinScanningRangeOfStars(game, waypointStar, scannedStarSet)) {
                 player.inRange.push(waypoint.destination.toString());
-            }else{
+            } else {
                 carrier.waypoints.splice(index);
 
                 if (carrier.waypointsLooped) {
@@ -134,14 +152,6 @@ export default class CullWaypointsService {
                 break;
             }
         }
-    }
-
-    _checkWaypointStarInRange(game: Game, waypoint: Star, player: { player: Player, stars: Star[], inRange: string[] }) {
-        for (let index = 0; index < player.stars.length; index++) {
-            const star = player.stars[index];
-            if(this.starService.getStarsWithinScanningRangeOfStarByStarIds(game, star, [waypoint]).length) return true;
-        }
-        return false;
     }
 
     _getPlayersWithOwnedOrInOrbitStars(game: Game) {

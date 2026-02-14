@@ -19,6 +19,9 @@ import { TradeEvent, TradeEventTechnology, TradeTechnology } from './types/Trade
 import { User } from './types/User';
 import UserService from './user';
 import StatisticsService from './statistics';
+import ScanningService from "./scanning";
+import { KDTree } from "../utils/kdTree";
+import { DistanceService } from 'solaris-common';
 
 export const TradeServiceEvents = {
     onPlayerCreditsReceived: 'onPlayerCreditsReceived',
@@ -45,6 +48,8 @@ export default class TradeService extends EventEmitter {
     playerCreditsService: PlayerCreditsService;
     playerAfkService: PlayerAfkService;
     statisticsService: StatisticsService;
+    scanningService: ScanningService;
+    distanceService: DistanceService;
 
     constructor(
         gameRepo: Repository<Game>,
@@ -60,6 +65,8 @@ export default class TradeService extends EventEmitter {
         playerCreditsService: PlayerCreditsService,
         playerAfkService: PlayerAfkService,
         statisticsService: StatisticsService,
+        scanningService: ScanningService,
+        distanceService: DistanceService,
     ) {
         super();
 
@@ -76,6 +83,8 @@ export default class TradeService extends EventEmitter {
         this.playerCreditsService = playerCreditsService;
         this.playerAfkService = playerAfkService;
         this.statisticsService = statisticsService;
+        this.scanningService = scanningService;
+        this.distanceService = distanceService;
     }
 
     isTradingCreditsDisabled(game: Game) {
@@ -473,16 +482,22 @@ export default class TradeService extends EventEmitter {
     }
 
     _canPlayersTradeInRange(game: Game, fromPlayer: Player, toPlayer: Player) {
+        // TODO: Calculate during tick processing and load stored tree
+        const kdTree = new KDTree(this.distanceService, game.galaxy.stars);
+
         if (game.settings.player.tradeScanning === 'scanned') {
-            return this.playerService.isInScanningRangeOfPlayer(game, fromPlayer, toPlayer);
+            return this.scanningService.isInScanningRangeOfPlayer(game, fromPlayer, toPlayer, kdTree);
         }
 
         return true;
     }
 
     _tradeScanningCheck(game: Game, fromPlayer: Player, toPlayer: Player) {
+        // TODO: Calculate during tick processing and load stored tree
+        const kdTree = new KDTree(this.distanceService, game.galaxy.stars);
+
         if (game.settings.player.tradeScanning === 'scanned') {
-            let isInRange = this.playerService.isInScanningRangeOfPlayer(game, fromPlayer, toPlayer);
+            let isInRange = this.scanningService.isInScanningRangeOfPlayer(game, fromPlayer, toPlayer, kdTree);
 
             if (!isInRange) {
                 throw new ValidationError(`You cannot trade with this player, they are not within scanning range.`);
