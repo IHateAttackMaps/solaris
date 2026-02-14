@@ -14,7 +14,7 @@
               </tr>
           </thead>
           <tbody>
-              <schedule-row v-for="action in sortedTableData"
+              <bulk-infrastructure-upgrade-schedule-table-row v-for="action in sortedTableData"
                             v-bind:key="action._id"
                             :action="action"
                             @bulkScheduleTrashed="onTrashed"/>
@@ -25,44 +25,35 @@
 </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
 import BulkInfrastructureUpgradeScheduleTableRow from './BulkInfrastructureUpgradeScheduleTableRow.vue'
-import GameHelper from '../../../../services/gameHelper'
-import GridHelper from '../../../../services/gridHelper'
-import { SortInfo } from '../../../../services/data/sortInfo'
+import GameHelper from '../../../../services/gameHelper';
+import type {Game} from "@/types/game";
+import {useSorted} from "@/util/sort";
+import {createSortInfo, swapSort} from "@/services/data/sortInfo";
 
-export default {
-  components: {
-    'schedule-row': BulkInfrastructureUpgradeScheduleTableRow
-  },
-  props: {
-      highlightIgnoredInfrastructure: String
-  },
-  data: function () {
-    return {
-      sortInfo: new SortInfo(null, true)
-    }
-  },
-  methods: {
-    onTrashed () {
-      this.$emit('bulkScheduleTrashed')
-    },
-    sort(...propertyPaths) {
-      this.swapSort(propertyPaths);
-    },
-  },
-  computed: {
-    userPlayer () {
-      return GameHelper.getUserPlayer(this.$store.state.game)
-    },
-    tableData () {
-      return this.userPlayer.scheduledActions
-    },
-    sortedTableData () {
-      return GridHelper.dynamicSort(this.tableData, this.sortInfo);
-    }
-  }
-}
+const defaultSortInfo = createSortInfo([['tick']], true);
+
+const emit = defineEmits<{
+  bulkScheduleTrashed: [actionId: string],
+}>();
+
+const onTrashed = (actionId: string) => emit('bulkScheduleTrashed', actionId);
+
+const store = useStore();
+const game = computed<Game>(() => store.state.game);
+const userPlayer = computed(() => GameHelper.getUserPlayer(game.value)!);
+const tableData = computed(() => userPlayer.value.scheduledActions);
+
+const sortInfo = ref(defaultSortInfo);
+
+const sort = (...propertyPaths: string[][]) => {
+  sortInfo.value = swapSort(sortInfo.value, propertyPaths);
+};
+
+const sortedTableData = useSorted(game, tableData, sortInfo);
 </script>
 
 <style scoped>
