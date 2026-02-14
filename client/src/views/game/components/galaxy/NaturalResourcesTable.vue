@@ -57,7 +57,7 @@ import NaturalResourcesRow from './NaturalResourcesRow.vue'
 import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
 import {useLocalStorage} from "@/util/reactiveHooks";
 import type {Game} from "@/types/game";
-import {useSortedData} from "@/views/game/components/galaxy/table";
+import {useSortedMapObjectData} from "@/views/game/components/galaxy/table";
 
 const SORT_INFO_KEY = 'galaxy_naturalResources_sortInfo';
 
@@ -88,7 +88,7 @@ const sort = (...propertyPaths) => {
 
 const filter = (s) => s.name.toLowerCase().includes(searchFilter.value.toLowerCase());
 
-const sortedFilteredTableData = useSortedData(tableData, sortInfo, showAll, game, filter);
+const sortedFilteredTableData = useSortedMapObjectData(tableData, sortInfo, showAll, game, filter);
 
 onMounted(() => {
   showAll.value = userPlayer.value != null;

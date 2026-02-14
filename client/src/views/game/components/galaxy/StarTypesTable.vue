@@ -72,7 +72,7 @@ import StarTypesRow from './StarTypesRow.vue'
 import {createSortInfo, swapSort} from "@/services/data/sortInfo";
 import {useLocalStorage} from "@/util/reactiveHooks";
 import type {Game, Star} from "@/types/game";
-import {useSortedData} from "@/views/game/components/galaxy/table";
+import {useSortedMapObjectData} from "@/views/game/components/galaxy/table";
 import type {StarWithTypes} from "@/views/game/components/galaxy/types";
 
 
@@ -105,7 +105,7 @@ const tableData = computed<StarWithTypes[]>(() =>
 
 const filter = (s: Star) => s.name.toLowerCase().includes(searchFilter.value.toLowerCase());
 
-const sortedFilteredTableData = useSortedData(tableData, sortInfo, showAll, game, filter);
+const sortedFilteredTableData = useSortedMapObjectData(tableData, sortInfo, showAll, game, filter);
 
 const toggleShowAll = () => showAll.value = !showAll.value;
 

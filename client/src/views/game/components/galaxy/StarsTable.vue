@@ -69,7 +69,7 @@ import StarRow from './StarRow.vue'
 import {createSortInfo, swapSort} from "@/services/data/sortInfo";
 import type {Game, Star} from "@/types/game";
 import {useLocalStorage} from "@/util/reactiveHooks";
-import {useSortedData} from "@/views/game/components/galaxy/table";
+import {useSortedMapObjectData} from "@/views/game/components/galaxy/table";
 
 const emit = defineEmits<{
   onOpenStarDetailRequested: [starId: string],
@@ -98,7 +98,7 @@ const allowUpgrades = computed(() => store.state.settings.interface.galaxyScreen
 
 const filter = (s: Star) => s.name.toLowerCase().includes(searchFilter.value.toLowerCase());
 
-const sortedFilteredTableData = useSortedData(tableData, sortInfo, showAll, game, filter);
+const sortedFilteredTableData = useSortedMapObjectData(tableData, sortInfo, showAll, game, filter);
 
 const toggleShowAll = () => showAll.value = !showAll.value;
 

@@ -56,7 +56,7 @@ import ShipRow from './ShipRow.vue'
 import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
 import type {Game} from "@/types/game";
 import {useLocalStorage} from "@/util/reactiveHooks";
-import {useSortedData} from "@/views/game/components/galaxy/table";
+import {useSortedMapObjectData} from "@/views/game/components/galaxy/table";
 import type {MapObjectWithShips} from "@/views/game/components/galaxy/types";
 
 const SORT_INFO_KEY = 'galaxy_ships_sortInfo';
@@ -112,7 +112,7 @@ const onOpenStarDetailRequested = (e: string) => emit('onOpenStarDetailRequested
 
 const filter = (c: MapObjectWithShips) => c.name.toLowerCase().includes(searchFilter.value.toLowerCase());
 
-const sortedFilteredTableData = useSortedData<MapObjectWithShips>(tableData, sortInfo, showAll, game, filter);
+const sortedFilteredTableData = useSortedMapObjectData<MapObjectWithShips>(tableData, sortInfo, showAll, game, filter);
 
 const sort = (...propertyPaths) => {
   sortInfo.value = swapSort(sortInfo.value, propertyPaths);

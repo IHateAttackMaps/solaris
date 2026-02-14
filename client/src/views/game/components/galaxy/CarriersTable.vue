@@ -52,7 +52,7 @@ import CarrierRow from './CarrierRow.vue'
 import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
 import {useLocalStorage} from "@/util/reactiveHooks";
 import type {Carrier, Game, Star} from "@/types/game";
-import {useSortedData} from "@/views/game/components/galaxy/table";
+import {useSortedMapObjectData} from "@/views/game/components/galaxy/table";
 
 const SORT_INFO_KEY = 'galaxy_carriers_sortInfo';
 
@@ -78,7 +78,7 @@ const onOpenCarrierDetailRequested = (e) => emit('onOpenCarrierDetailRequested',
 
 const filter = (c: Carrier) => c.name.toLowerCase().includes(searchFilter.value.toLowerCase());
 
-const sortedFilteredTableData = useSortedData(tableData, sortInfo, showAll, game, filter);
+const sortedFilteredTableData = useSortedMapObjectData(tableData, sortInfo, showAll, game, filter);
 
 const sort = (...propertyPaths) => {
   sortInfo.value = swapSort(sortInfo.value, propertyPaths);

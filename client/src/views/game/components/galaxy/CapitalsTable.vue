@@ -53,7 +53,7 @@ import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import type {Game, Star} from "@/types/game";
-import {useSortedData} from "@/views/game/components/galaxy/table";
+import {useSortedMapObjectData} from "@/views/game/components/galaxy/table";
 import {useLocalStorage} from "@/util/reactiveHooks";
 
 const emit = defineEmits<{
@@ -77,7 +77,7 @@ const tableData = computed(() => game.value.galaxy.stars.filter(s => s.homeStar)
 
 const filter = (s: Star) => s.name.toLowerCase().includes(searchFilter.value.toLowerCase());
 
-const sortedFilteredTableData = useSortedData(tableData, sortInfo, showAll, game, filter);
+const sortedFilteredTableData = useSortedMapObjectData(tableData, sortInfo, showAll, game, filter);
 
 const toggleShowAll = () => showAll.value = !showAll.value;
 
