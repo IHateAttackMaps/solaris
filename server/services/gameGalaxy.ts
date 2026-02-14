@@ -232,7 +232,7 @@ export default class GameGalaxyService {
             this._setStarInfoBasic(game);
             this._clearPlayerCarriers(game);
         } else {
-            this._setCarrierInfoDetailed(game, viewpoint, kdTree);
+            this._setCarrierInfoDetailed(game, viewpoint, new KDTree(this.distanceService, game.galaxy.carriers));
             this._setStarInfoDetailed(game, userPlayer, viewpoint, scannedStarSet);
         }
 
