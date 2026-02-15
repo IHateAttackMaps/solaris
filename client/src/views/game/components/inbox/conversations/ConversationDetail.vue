@@ -32,7 +32,7 @@
             @onOpenPlayerDetailRequested="onOpenPlayerDetailRequested"
             @onOpenReportPlayerRequested="onOpenReportPlayerRequested"
             @onMinimizeConversationRequested="toggleConversationWindow"/>
-          <conversation-trade-event v-if="message.type !== 'message'" :event="message"/>
+          <conversation-trade-event v-if="message.type !== 'message'" :event="message as TradeEvent<string> | DiplomacyEvent<string>"/>
         </div>
       </div>
     </div>
@@ -63,7 +63,12 @@ import {formatError, httpInjectionKey, isError, isOk} from "@/services/typedapi"
 import { useStore } from 'vuex';
 import {detailConversation, leave, markAsRead, mute, unmute} from "@/services/typedapi/conversation";
 import {makeConfirm} from "@/util/confirm";
-import type { Conversation, ConversationMessageSentResult, ConversationMessage as CMessage } from "@solaris-common";
+import type {
+  Conversation,
+  ConversationMessageSentResult,
+  ConversationMessage as CMessage,
+  TradeEvent, DiplomacyEvent
+} from "@solaris-common";
 import type { Game } from "@/types/game";
 
 const props = defineProps<{

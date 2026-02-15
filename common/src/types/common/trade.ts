@@ -29,6 +29,23 @@ export type BaseTradeEvent<ID> =
     | PlayerGiftReceivedEvent<ID>
     | PlayerGiftSentEvent<ID>;
 
+export type BaseTradeEventTypes = BaseTradeEvent<string>['type'];
+
+export const TRADE_EVENT_TYPES: BaseTradeEventTypes[] = [
+    'playerDebtForgiven',
+    'playerDebtSettled',
+    'playerCreditsReceived',
+    'playerCreditsSent',
+    'playerRenownReceived',
+    'playerRenownSent',
+    'playerCreditsSpecialistsReceived',
+    'playerCreditsSpecialistsSent',
+    'playerTechnologySent',
+    'playerTechnologyReceived',
+    'playerGiftReceived',
+    'playerGiftSent',
+]
+
 export type TradeEvent<ID> = { sentDate: Date } & BaseTradeEvent<ID>;
 
 export interface TradeEventTechnology {
