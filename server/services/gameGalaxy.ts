@@ -32,7 +32,7 @@ import { CarrierWaypoint } from 'solaris-common';
 import { DBObjectId } from './types/DBObjectId';
 import { Game } from './types/Game';
 import { GameHistoryCarrier, GameHistoryCarrierWaypoint } from "./types/GameHistory";
-import { Guild, GuildUserWithTag } from './types/Guild';
+import { Guild, GuildUserWithTag } from 'solaris-common';
 import { Player, PlayerDiplomaticState, PlayerReputation, PlayerResearch } from './types/Player';
 import { Star } from './types/Star';
 import { WaypointService } from 'solaris-common';
