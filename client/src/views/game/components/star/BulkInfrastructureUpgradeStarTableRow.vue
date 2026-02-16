@@ -19,46 +19,33 @@
 </tr>
 </template>
 
-<script>
+<script setup lang="ts">
 import SpecialistIcon from '../specialist/SpecialistIcon.vue'
-import IgnoreBulkUpgradeVue from './IgnoreBulkUpgrade.vue'
-import StarResourcesVue from './StarResources.vue'
+import IgnoreBulkUpgrade from './IgnoreBulkUpgrade.vue'
+import StarResources from './StarResources.vue'
 import {eventBusInjectionKey} from "@/eventBus";
 import { inject } from 'vue';
 import MapCommandEventBusEventNames from "@/eventBusEventNames/mapCommand";
+import type {Star} from "@/types/game";
+import type {InfrastructureType, MapObject} from "@solaris-common";
 
-export default {
-  components: {
-    'specialist-icon': SpecialistIcon,
-    'ignore-bulk-upgrade': IgnoreBulkUpgradeVue,
-    'star-resources': StarResourcesVue
-  },
-  props: {
-    star: Object,
-    highlightIgnoredInfrastructure: String
-  },
-  setup () {
-    return {
-      eventBus: inject(eventBusInjectionKey)
-    }
-  },
-  data () {
-    return {
-      audio: null
-    }
-  },
-  methods: {
-    onBulkIgnoreChanged (e) {
-      this.$emit('bulkIgnoreChanged', e);
-    },
-    clickStar (e) {
-      this.$emit('onOpenStarDetailRequested', this.star._id)
-    },
-    goToStar (e) {
-      this.eventBus.emit(MapCommandEventBusEventNames.MapCommandPanToObject, { object: this.star });
-    }
-  }
-}
+const props = defineProps<{
+  star: Star,
+  highlightIgnoredInfrastructure: InfrastructureType | undefined,
+}>();
+
+const emit = defineEmits<{
+  bulkIgnoreChanged: [{ starId: string }],
+  onOpenStarDetailRequested: [starId: string],
+}>();
+
+const eventBus = inject(eventBusInjectionKey)!;
+
+const onBulkIgnoreChanged = (e: { starId: string }) => emit('bulkIgnoreChanged', e);
+
+const clickStar = () => emit('onOpenStarDetailRequested', props.star._id);
+
+const goToStar = () => eventBus.emit(MapCommandEventBusEventNames.MapCommandPanToObject, { object: props.star as MapObject<string> });
 </script>
 
 <style scoped>

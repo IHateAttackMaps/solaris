@@ -384,10 +384,14 @@
 </template>
 
 <script setup lang="ts">
+import { inject } from 'vue';
 import ViewContainer from "./components/ViewContainer.vue"
 import ViewTitle from "./components/ViewTitle.vue"
+import {configInjectionKey} from "@/config";
 
-const providerInfoUrl = import.meta.env.VUE_APP_PROVIDER_INFORMATION_URL;
+const config = inject(configInjectionKey)!;
+
+const providerInfoUrl = config.appProviderInformationUrl;
 </script>
 
 <style scoped>

@@ -69,55 +69,39 @@
 </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import MenuTitle from '../MenuTitle.vue'
-import StarsTableVue from './StarsTable.vue'
-import StarTypesTableVue from './StarTypesTable.vue'
-import CarriersTableVue from './CarriersTable.vue'
-import ShipsTableVue from './ShipsTable.vue'
-import CapitalsTableVue from './CapitalsTable.vue'
-import NaturalResourcesTableVue from './NaturalResourcesTable.vue'
-import EmpiresTableVue from './EmpiresTable.vue'
-import TechnologyTableVue from './TechnologyTable.vue'
+import StarsTable from './StarsTable.vue'
+import StarTypesTable from './StarTypesTable.vue'
+import CarriersTable from './CarriersTable.vue'
+import ShipsTable from './ShipsTable.vue'
+import CapitalsTable from './CapitalsTable.vue'
+import NaturalResourcesTable from './NaturalResourcesTable.vue'
+import EmpiresTable from './EmpiresTable.vue'
+import TechnologyTable from './TechnologyTable.vue'
 
-export default {
-  components: {
-    'menu-title': MenuTitle,
-    'stars-table': StarsTableVue,
-    'star-types-table': StarTypesTableVue,
-    'carriers-table': CarriersTableVue,
-    'ships-table': ShipsTableVue,
-    'capitals-table': CapitalsTableVue,
-    'natural-resources-table': NaturalResourcesTableVue,
-    'empires-table': EmpiresTableVue,
-    'technology-table': TechnologyTableVue
-  },
-  props: {
-    'tab': String
-  },
-  data () {
-    return {
-      activeTab: null
-    }
-  },
-  mounted () {
-    this.activeTab = this.tab || 'empires'
-  },
-  methods: {
-    onCloseRequested (e) {
-      this.$emit('onCloseRequested', e)
-    },
-    onOpenStarDetailRequested (e) {
-      this.$emit('onOpenStarDetailRequested', e)
-    },
-    onOpenCarrierDetailRequested (e) {
-      this.$emit('onOpenCarrierDetailRequested', e)
-    },
-    onOpenPlayerDetailRequested (e) {
-      this.$emit('onOpenPlayerDetailRequested', e)
-    }
-  }
-}
+const props = defineProps<{
+  tab?: string
+}>();
+
+const emit = defineEmits<{
+  onCloseRequested: [],
+  onOpenStarDetailRequested: [starId: string],
+  onOpenCarrierDetailRequested: [carrierId: string],
+  onOpenPlayerDetailRequested: [playerId: string]
+}>();
+
+const activeTab = ref<string | null>(null);
+
+const onCloseRequested = () => emit('onCloseRequested');
+const onOpenStarDetailRequested = (e: string) => emit('onOpenStarDetailRequested', e);
+const onOpenCarrierDetailRequested = (e: string) => emit('onOpenCarrierDetailRequested', e);
+const onOpenPlayerDetailRequested = (e: string) => emit('onOpenPlayerDetailRequested', e);
+
+onMounted(() => {
+  activeTab.value = props.tab || 'empires';
+});
 </script>
 
 <style scoped>

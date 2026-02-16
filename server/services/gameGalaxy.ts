@@ -586,7 +586,7 @@ export default class GameGalaxyService {
         let onlinePlayers = this.socketService.getOnlinePlayers(doc); // Need this for later.
 
         // Get the list of all guilds associated to players, we'll need this later.
-        let guildUsers: GuildUserWithTag[] = [];
+        let guildUsers: GuildUserWithTag<DBObjectId>[] = [];
 
         const isAnonymousNow = this.gameStateService.isFinished(doc) ? this.gameTypeService.isAnonymousAfterEnd(doc) : this.gameTypeService.isAnonymousGameDuringGame(doc);
 
@@ -615,7 +615,7 @@ export default class GameGalaxyService {
             p.hasPerspective = Boolean(viewpoint.kind === ViewpointKind.Perspectives && viewpoint.perspectives.find(otherPlayer => otherPlayer._id.toString() === p._id.toString()));
 
             // Append the guild tag to the player alias.
-            let playerGuild: Guild | null = null;
+            let playerGuild: Guild<DBObjectId> | null = null;
 
             if (p.userId) {
                 let guildUser = guildUsers.find(u => p.userId && u._id.toString() === p.userId.toString());

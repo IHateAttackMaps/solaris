@@ -63,8 +63,6 @@ export const extractErrors = (response: ResponseResultRequestError | ResponseRes
 
 const PATH_VARIABLE_PATTERN = /:(.\w+)/g;
 
-const BASE_URL = import.meta.env.VUE_APP_API_HOST;
-
 const pathReplacement = <PP extends Object, QP extends Object, T1, T2>(route: Route<PP, QP, T1, T2>, params: PP) => {
   const relPath = route.path.replaceAll(PATH_VARIABLE_PATTERN, (_match, g1) => {
     const param = params[g1];
@@ -76,7 +74,7 @@ const pathReplacement = <PP extends Object, QP extends Object, T1, T2>(route: Ro
     return param;
   });
 
-  return BASE_URL + relPath;
+  return relPath;
 }
 
 const mapError = <T>(e: unknown, path: string): ResponseResult<T> => {

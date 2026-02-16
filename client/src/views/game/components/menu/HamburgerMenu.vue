@@ -55,7 +55,8 @@
            v-if="isFormalAlliancesEnabled"><i class="fas fa-globe-americas me-2"></i>Diplomacy</a>
         <a class="dropdown-item" v-on:click="setMenuState(MENU_STATES.LEDGER)" title="Ledger (L)" v-if="isTradeEnabled"><i
           class="fas fa-file-invoice-dollar me-2"></i>Ledger</a>
-        <a class="dropdown-item" v-on:click="setMenuState(MENU_STATES.STATISTICS)" title="Statistics"><i class="fas fa-chart-bar me-2"></i>Statistics</a>
+        <a class="dropdown-item" v-on:click="setMenuState(MENU_STATES.STATISTICS)" title="Statistics"><i
+          class="fas fa-chart-bar me-2"></i>Statistics</a>
         <a class="dropdown-item" v-on:click="setMenuState(MENU_STATES.GAME_NOTES)" title="Notes (N)"><i
           class="fas fa-book-open me-2"></i>Notes</a>
         <a class="dropdown-item" v-on:click="setMenuState(MENU_STATES.SPECTATORS)" title="Spectators"
@@ -82,122 +83,102 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import GameHelper from '../../../../services/gameHelper'
 import DiplomacyHelper from '../../../../services/diplomacyHelper'
 import router from '../../../../router'
 import MENU_STATES from '../../../../services/data/menuStates'
-import gameHelper from "../../../../services/gameHelper";
 import MenuEventBusEventNames from '../../../../eventBusEventNames/menu'
-import {inject} from 'vue'
+import {inject, computed} from 'vue'
+import {useStore} from 'vuex';
 import {eventBusInjectionKey} from '../../../../eventBus'
 import MapCommandEventBusEventNames from "@/eventBusEventNames/mapCommand";
+import {configInjectionKey} from "@/config";
+import type {Game} from "@/types/game";
 
-export default {
-  components: {},
-  props: {
-    buttonClass: String,
-    dropType: String
-  },
-  data() {
-    return {
-      MENU_STATES: MENU_STATES
-    }
-  },
-  setup() {
-    return {
-      eventBus: inject(eventBusInjectionKey)
-    }
-  },
-  methods: {
-    setMenuState(state, args) {
-      this.$store.commit('setMenuState', {
-        state,
-        args
-      })
-    },
-    onMenuChatSidebarRequested() {
-      this.eventBus.emit(MenuEventBusEventNames.OnMenuChatSidebarRequested);
-    },
-    goToMainMenu() {
-      router.push({name: 'main-menu'})
-    },
-    fitGalaxy() {
-      const galaxyCenterX = gameHelper.calculateGalaxyCenterX(this.$store.state.game)
-      const galaxyCenterY = gameHelper.calculateGalaxyCenterY(this.$store.state.game)
+const props = defineProps<{
+  buttonClass: string,
+  dropType: string,
+}>();
 
-      this.eventBus.emit(MapCommandEventBusEventNames.MapCommandFitGalaxy, {
-        location: {
-          x: galaxyCenterX,
-          y: galaxyCenterY,
-        }
-      });
-    },
-    zoomIn() {
-      this.eventBus.emit(MapCommandEventBusEventNames.MapCommandZoomIn, {});
-    },
-    zoomOut() {
-      this.eventBus.emit(MapCommandEventBusEventNames.MapCommandZoomOut, {});
-    },
-    panToHomeStar() {
-      this.eventBus.emit(MapCommandEventBusEventNames.MapCommandPanToUser, {});
+const emit = defineEmits<{
+  onOpenPlayerDetailRequested: [playerId: string],
+}>();
 
-      if (this.userPlayer) {
-        this.$emit('onOpenPlayerDetailRequested', this.userPlayer._id)
-      }
-    },
-    reloadPage() {
-      location.reload()
-    },
-    toggleCustomColours() {
-      this.$store.commit('setColourOverride', !this.isCustomColoursEnabled)
-    }
-  },
-  computed: {
-    game() {
-      return this.$store.state.game
-    },
-    gameIsInProgress() {
-      return GameHelper.isGameInProgress(this.$store.state.game)
-    },
-    gameIsFinished() {
-      return GameHelper.isGameFinished(this.$store.state.game)
-    },
-    gameIsJoinable() {
-      return this.$store.state.userId != null && GameHelper.gameHasOpenSlots(this.$store.state.game)
-    },
-    userPlayer() {
-      return GameHelper.getUserPlayer(this.$store.state.game)
-    },
-    isLoggedIn() {
-      return this.$store.state.userId != null
-    },
-    isDarkModeExtra() {
-      return GameHelper.isDarkModeExtra(this.$store.state.game)
-    },
-    isDataCleaned() {
-      return this.$store.state.game.state.cleaned
-    },
-    documentationUrl() {
-      return import.meta.env.VUE_APP_DOCUMENTATION_URL
-    },
-    isFormalAlliancesEnabled() {
-      return DiplomacyHelper.isFormalAlliancesEnabled(this.$store.state.game)
-    },
-    isTradeEnabled() {
-      return GameHelper.isTradeEnabled(this.$store.state.game)
-    },
-    isTutorialGame() {
-      return GameHelper.isTutorialGame(this.$store.state.game)
-    },
-    isSpectatingEnabled() {
-      return GameHelper.isSpectatingEnabled(this.$store.state.game)
-    },
-    isCustomColoursEnabled() {
-      return this.$store.state.colourOverride
-    }
+const eventBus = inject(eventBusInjectionKey)!;
+const config = inject(configInjectionKey)!;
+
+const store = useStore();
+const game = computed<Game>(() => store.state.game);
+
+const setMenuState = (state: string, args: any = null) => {
+  store.commit('setMenuState', {
+    state,
+    args
+  });
+};
+
+const onMenuChatSidebarRequested = () => {
+  eventBus.emit(MenuEventBusEventNames.OnMenuChatSidebarRequested);
+};
+
+const goToMainMenu = () => {
+  router.push({name: 'main-menu'});
+};
+
+const fitGalaxy = () => {
+  eventBus.emit(MapCommandEventBusEventNames.MapCommandFitGalaxy, {});
+};
+
+const zoomIn = () => {
+  eventBus.emit(MapCommandEventBusEventNames.MapCommandZoomIn, {});
+};
+
+const zoomOut = () => {
+  eventBus.emit(MapCommandEventBusEventNames.MapCommandZoomOut, {});
+};
+
+const panToHomeStar = () => {
+  eventBus.emit(MapCommandEventBusEventNames.MapCommandPanToUser, {});
+
+  if (userPlayer.value) {
+    emit('onOpenPlayerDetailRequested', userPlayer.value._id);
   }
-}
+};
+
+const reloadPage = () => {
+  location.reload();
+};
+
+const toggleCustomColours = () => {
+  store.commit('setColourOverride', !isCustomColoursEnabled.value);
+};
+
+const gameIsInProgress = computed(() => GameHelper.isGameInProgress(game.value));
+
+const gameIsFinished = computed(() => GameHelper.isGameFinished(game.value));
+
+const gameIsJoinable = computed(() => store.state.userId != null && GameHelper.gameHasOpenSlots(game.value));
+
+const userPlayer = computed(() => GameHelper.getUserPlayer(game.value));
+
+const isLoggedIn = computed(() => store.state.userId != null);
+
+const isDarkModeExtra = computed(() => GameHelper.isDarkModeExtra(game.value));
+
+const isDataCleaned = computed(() => store.state.game.state.cleaned);
+
+const documentationUrl = computed(() => config.appDocumentationUrl);
+
+const isFormalAlliancesEnabled = computed(() => DiplomacyHelper.isFormalAlliancesEnabled(game.value));
+
+const isTradeEnabled = computed(() => GameHelper.isTradeEnabled(game.value));
+
+const isTutorialGame = computed(() => GameHelper.isTutorialGame(game.value));
+
+const isSpectatingEnabled = computed(() => GameHelper.isSpectatingEnabled(game.value));
+
+const isCustomColoursEnabled = computed(() => store.state.colourOverride);
 </script>
 
 <style scoped>

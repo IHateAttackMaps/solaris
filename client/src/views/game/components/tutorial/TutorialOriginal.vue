@@ -22,10 +22,6 @@
         <div class="ratio ratio-16x9 mb-2">
             <iframe src="https://www.youtube.com/embed/cnRXQMQ43Gs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
-
-        <p class="pb-2">
-            The full Solaris wiki can be found <a :href="documentationUrl" target="_blank">here</a>.
-        </p>
     </div>
 
     <div v-if="page === 1">
@@ -103,7 +99,7 @@
         <h5>Carriers &amp; Waypoints</h5>
 
         <p>
-            In order to capture stars, you must build <strong>Carriers</strong>, use carriers to transport ships 
+            In order to capture stars, you must build <strong>Carriers</strong>, use carriers to transport ships
             across the galaxy to stars in order to capture them. A carrier must have at least 1 ship.
         </p>
 
@@ -116,7 +112,7 @@
         <h5>Capturing Stars</h5>
 
         <p>
-            Once you've built the carrier, edit the waypoints of the carrier to travel to stars that you do not own to capture them, 
+            Once you've built the carrier, edit the waypoints of the carrier to travel to stars that you do not own to capture them,
             make sure you <span class="text-danger">load the carrier with enough ships</span> in case they run into a combat situation.
         </p>
 
@@ -134,7 +130,7 @@
         <h5>Research &amp; Technology</h5>
 
         <p>
-            Researching technology upgrades is critical in order to stay ahead of your opponents. 
+            Researching technology upgrades is critical in order to stay ahead of your opponents.
             Technology is researched every tick using the <span class="text-info">Science</span> infrastructure built at your stars.
             The more science your stars have, the faster you will research new technologies.
         </p>

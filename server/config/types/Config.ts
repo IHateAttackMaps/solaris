@@ -1,3 +1,5 @@
+import {FrontendConfig} from "@solaris-common";
+
 export type LoggingType = 'pretty' | 'stdout';
 
 export interface Config {
@@ -28,5 +30,6 @@ export interface Config {
         clientSecret?: string;
         oauthRedirectUri?: string;
         botToken?: string;
-    }
+    },
+    frontend: FrontendConfig,
 };

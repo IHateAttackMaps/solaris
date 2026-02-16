@@ -40,11 +40,14 @@ import router from '../router'
 import LoadingSpinner from './components/LoadingSpinner.vue'
 import Parallax from './components/Parallax.vue'
 import LatestAnnouncement from "./components/LatestAnnouncement.vue";
-import { ref, onMounted } from 'vue';
+import { ref, inject, onMounted } from 'vue';
 import { useStore, type Store } from 'vuex';
 import type {State} from "@/store";
+import {configInjectionKey} from "@/config";
 
-const documentationUrl = import.meta.env.VUE_APP_DOCUMENTATION_URL;
+const config = inject(configInjectionKey)!;
+
+const documentationUrl = config.appDocumentationUrl;
 
 const store: Store<State> = useStore();
 

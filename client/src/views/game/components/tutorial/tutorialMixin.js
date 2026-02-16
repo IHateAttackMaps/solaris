@@ -52,9 +52,6 @@ export default {
         },
         menuState () {
             return this.$store.state.menuStateChat
-        },
-        documentationUrl() {
-            return import.meta.env.VUE_APP_DOCUMENTATION_URL
         }
     }
 }

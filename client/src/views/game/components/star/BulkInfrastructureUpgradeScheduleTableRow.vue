@@ -13,47 +13,41 @@
 </tr>
 </template>
 
-<script>
+<script setup lang="ts">
 import RepeatBulkUpgrade from './RepeatBulkUpgrade.vue'
-import TrashBulkUpgade from './TrashBulkUpgrade.vue'
+import TrashBulkUpgrade from './TrashBulkUpgrade.vue'
+import type {PlayerScheduledActions} from "@solaris-common";
 
-export default {
-  components: {
-    'repeat-bulk-upgrade': RepeatBulkUpgrade,
-    'trash-bulk-upgrade': TrashBulkUpgade
-  },
-  props: {
-    action: Object,
-  },
-    data() {
-      return {}
-},
-  methods: {
-    onTrashed (e) {
-      this.$emit('bulkScheduleTrashed', e)
-    },
-    getFriendlyText(string) {
-      switch (string) {
-        case 'economy':
-          return 'Economy';
-        case 'industry':
-          return 'Industry';
-        case 'science':
-          return 'Science';
-        case 'totalCredits':
-          return 'Total Credits';
-        case 'percentageOfCredits':
-          return 'Percentage';
-        case 'infrastructureAmount':
-          return 'Infrastructure Amount';
-        case 'belowPrice':
-          return 'Below Price';
-        default:
-          return ''
-      }
-    }
+const props = defineProps<{
+  action: PlayerScheduledActions<string>,
+}>();
+
+const emit = defineEmits<{
+  bulkScheduleTrashed: [actionId: string],
+}>();
+
+const onTrashed = (actionId: string) => emit('bulkScheduleTrashed', actionId);
+
+const getFriendlyText = (string: string) => {
+  switch (string) {
+    case 'economy':
+      return 'Economy';
+    case 'industry':
+      return 'Industry';
+    case 'science':
+      return 'Science';
+    case 'totalCredits':
+      return 'Total Credits';
+    case 'percentageOfCredits':
+      return 'Percentage';
+    case 'infrastructureAmount':
+      return 'Infrastructure Amount';
+    case 'belowPrice':
+      return 'Below Price';
+    default:
+      return ''
   }
-}
+};
 </script>
 
 <style scoped>

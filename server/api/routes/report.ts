@@ -3,11 +3,16 @@ import { DependencyContainer } from "../../services/types/DependencyContainer";
 import ReportController from '../controllers/report';
 import { MiddlewareContainer } from "../middleware";
 import { SingleRouter} from "../singleRoute";
+import {createReportRoutes} from "solaris-common";
+import {DBObjectId} from "../../services/types/DBObjectId";
+import {createRoutes} from "../typedapi/routes";
 
 export default (router: SingleRouter, mw: MiddlewareContainer, validator: ExpressJoiInstance, container: DependencyContainer) => {
     const controller = ReportController(container);
+    const routes = createReportRoutes<DBObjectId>();
+    const answer = createRoutes(router, mw);
 
-    router.post('/api/game/:gameId/report',
+    answer(routes.createReport,
             mw.auth.authenticate(),
             mw.playerMutex.wait(),
             mw.game.loadGame({

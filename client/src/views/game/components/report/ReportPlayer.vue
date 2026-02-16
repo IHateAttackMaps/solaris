@@ -65,12 +65,13 @@
 <script setup lang="ts">
 import MenuTitle from '../MenuTitle.vue';
 import GameHelper from '../../../../services/gameHelper';
-import ReportApiService from '../../../../services/api/report';
 import { ref, computed, inject } from 'vue';
 import { useStore, type Store } from 'vuex';
 import type {State} from "@/store";
 import {toastInjectionKey} from "@/util/keys";
 import {makeConfirm} from "@/util/confirm";
+import {createReport} from "@/services/typedapi/report";
+import {formatError, httpInjectionKey, isOk} from "@/services/typedapi";
 
 export type Args = {
   playerId: string,
@@ -88,6 +89,7 @@ const emit = defineEmits<{
 }>();
 
 const toast = inject(toastInjectionKey)!;
+const httpClient = inject(httpInjectionKey)!;
 
 const store: Store<State> = useStore();
 
@@ -123,14 +125,13 @@ const confirmReportPlayer = async () => {
     return;
   }
 
-  try {
-    await ReportApiService.reportPlayer(store.state.game!._id, props.args.playerId, props.args.messageId, props.args.conversationId, optionAbuse.value, optionSpamming.value, optionMultiboxing.value, optionInappropriateAlias.value);
-
+  const response = await createReport(httpClient)(store.state.game!._id, props.args.playerId, props.args.messageId, props.args.conversationId, optionAbuse.value, optionSpamming.value, optionMultiboxing.value, optionInappropriateAlias.value);
+  if (isOk(response)) {
     toast.success(`You have reported ${player.value?.alias}. We will investigate and take action if necessary.`);
 
     onOpenPlayerDetailRequested();
-  } catch (err) {
-    console.error(err);
+  } else {
+    console.error(formatError(response));
   }
 };
 </script>

@@ -5,11 +5,10 @@ import { Game } from './types/Game';
 import { Report } from './types/Report';
 import PlayerService from './player';
 import ConversationService from "./conversation";
-import {ReportCreateReportRequest} from "../api/requests/report";
 import UserService from "./user";
 import GameListService from "./gameList";
 import GameService from "./game";
-import {Conversation} from "./types/Conversation";
+import {Conversation, ReportCreateReportRequest} from "solaris-common";
 
 export default class ReportService {
     reportModel;
@@ -38,7 +37,7 @@ export default class ReportService {
         this.gameService = gameService;
     }
 
-    async reportPlayer(game: Game, req: ReportCreateReportRequest, reportedByUserId: DBObjectId) {
+    async reportPlayer(game: Game, req: ReportCreateReportRequest<DBObjectId>, reportedByUserId: DBObjectId) {
         const reportedPlayer = this.playerService.getById(game, req.playerId);
         const reportedByPlayer = this.playerService.getByUserId(game, reportedByUserId)!;
 
@@ -56,8 +55,8 @@ export default class ReportService {
             reportedByPlayerId: reportedByPlayer._id,
             reportedByUserId: reportedByPlayer.userId,
             reportedByPlayerAlias: reportedByPlayer.alias,
-            reportedMessageId: req.messageId || null,
-            reportedConversationId: req.conversationId || null,
+            reportedMessageId: req.conversation?.messageId || null,
+            reportedConversationId: req.conversation?.conversationId || null,
             reasons: {
                 abuse: reasons.abuse || false,
                 spamming: reasons.spamming || false,
@@ -77,7 +76,7 @@ export default class ReportService {
             userGameIds.includes(report.gameId.toString());
     }
 
-    async conversationForReport(reportId: DBObjectId, userId: DBObjectId): Promise<Conversation> {
+    async conversationForReport(reportId: DBObjectId, userId: DBObjectId): Promise<Conversation<DBObjectId>> {
         const report = await this.reportRepo.findOne({
             _id: reportId
         }, {});

@@ -1,5 +1,5 @@
 import { DBObjectId } from "./DBObjectId";
-import { Guild } from "./Guild";
+import { Guild } from "solaris-common";
 import { Player } from "./Player";
 import {Team} from "./Game";
 
@@ -44,5 +44,5 @@ export interface LeaderboardUser {
     _id: DBObjectId,
     username: string;
     position: number;
-    guild: Guild | null;
+    guild: Guild<DBObjectId> | null;
 };

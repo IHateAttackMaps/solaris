@@ -53,7 +53,6 @@
               <star-types-row v-for="star in sortedFilteredTableData"
                               v-bind:key="star._id"
                               :star="star"
-                              :allowUpgrades="allowUpgrades"
                               @onOpenStarDetailRequested="onOpenStarDetailRequested"/>
           </tbody>
       </table>
@@ -64,95 +63,61 @@
 </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import GameHelper from '../../../../services/gameHelper'
-import GridHelper from '../../../../services/gridHelper'
-import SortInfo from '../../../../services/data/sortInfo'
-import StarIconVue from '../star/StarIcon.vue'
-import StarTypesRowVue from './StarTypesRow.vue'
+import StarIcon from '../star/StarIcon.vue'
+import StarTypesRow from './StarTypesRow.vue'
+import {createSortInfo, swapSort} from "@/services/data/sortInfo";
+import {useLocalStorage} from "@/util/reactiveHooks";
+import type {Game, Star} from "@/types/game";
+import {useSortedMapObjectData} from "@/views/game/components/galaxy/table";
+import type {StarWithTypes} from "@/views/game/components/galaxy/types";
 
-export default {
-  components: {
-    'star-icon': StarIconVue,
-    'star-types-row': StarTypesRowVue
-  },
-  data: function () {
-    let defaultSortInfo = new SortInfo([['name']], true);
 
-    return {
-      showAll: false,
-      allowUpgrades: true,
-      defaultSortInfo: defaultSortInfo,
-      sortInfo: new SortInfo(defaultSortInfo.propertyPaths, defaultSortInfo.sortAscending),
-      sortInfoKey: 'galaxy_startypes_sortInfo',
-      searchFilter: ''
-    }
-  },
-  mounted () {
-    this.showAll = this.userPlayer == null;
-    this.sortInfo = SortInfo.fromJSON(localStorage.getItem(this.sortInfoKey), this.defaultSortInfo);
-    this.allowUpgrades = this.$store.state.settings.interface.galaxyScreenUpgrades === 'enabled' && !this.isGameFinished;
-  },
-  destroyed () {
-    localStorage.setItem(this.sortInfoKey, JSON.stringify(this.sortInfo));
-  },
-  methods: {
-    toggleShowAll () {
-      this.showAll = !this.showAll;
-    },
-    sort (...propertyPaths) {
-      this.sortInfo.swapSort(propertyPaths);
-    },
-    onOpenStarDetailRequested (e) {
-      this.$emit('onOpenStarDetailRequested', e)
-    },
-    // TODO: Move this method to a base class of the table vue components (eg StarTable.vue) once we move to Vue 3 and can use Typescript.
-    missingPropertyFallbackFunc(obj, key) {
-      switch (key) {
-        case 'ownedByPlayer':
-          return this.playersMap.get(obj.ownedByPlayerId);
-        default:
-          return null;
-      }
-    }
-  },
-  computed: {
-    userPlayer () {
-      return GameHelper.getUserPlayer(this.$store.state.game)
-    },
-    playersMap() {
-      return new Map(this.$store.state.game.galaxy.players.map(p => [p._id, p]));
-    },
-    tableData () {
-      return this.$store.state.game.galaxy.stars.map(s => {
+const emit = defineEmits<{
+  onOpenStarDetailRequested: [starId: string],
+}>();
 
-        let ns = Object.assign({}, s);
+const SORT_INFO_KEY = "galaxy_startypes_sortInfo";
 
-        ns.isWormHole = ns.wormHoleToStarId != null;
-        ns.wormHolePairStar = ns.wormHoleToStarId != null ? GameHelper.getStarById(this.$store.state.game, ns.wormHoleToStarId) : null;
+const defaultSortInfo = createSortInfo([['name']], true);
 
-        return ns;
-      });
-    },
-    filteredTableData() {
-      let tableData = this.tableData;
+const store = useStore();
+const game = computed<Game>(() => store.state.game);
 
-      let isSearchFilterMatch = s => s.name.toLowerCase().includes(this.searchFilter.toLowerCase());
+const sortInfo = useLocalStorage(SORT_INFO_KEY, defaultSortInfo);
 
-      if (!this.showAll && this.userPlayer != null) {
-        tableData = tableData.filter(s => s.ownedByPlayerId === this.userPlayer._id && isSearchFilterMatch(s));
-      }
-      else {
-        tableData = tableData.filter(isSearchFilterMatch);
-      }
+const showAll = ref(false);
+const searchFilter = ref('');
 
-      return tableData;
-    },
-    sortedFilteredTableData() {
-      return GridHelper.dynamicSort(this.filteredTableData, this.sortInfo, this.missingPropertyFallbackFunc);
-    }
-  }
-}
+const userPlayer = computed(() => GameHelper.getUserPlayer(game.value));
+const tableData = computed<StarWithTypes[]>(() =>
+  game.value.galaxy.stars.map(s => {
+    const star: StarWithTypes = {
+      ...s,
+      isWormHole: s.wormHoleToStarId != null,
+      wormHolePairStar: s.wormHoleToStarId != null ? GameHelper.getStarById(game.value, s.wormHoleToStarId)! : null,
+    };
+    return star;
+  }));
+
+const filter = (s: Star) => s.name.toLowerCase().includes(searchFilter.value.toLowerCase());
+
+const sortedFilteredTableData = useSortedMapObjectData(tableData, sortInfo, showAll, game, filter);
+
+const toggleShowAll = () => showAll.value = !showAll.value;
+
+const sort = (...propertyPaths: string[][]) => {
+  sortInfo.value = swapSort(sortInfo.value, propertyPaths);
+};
+
+const onOpenStarDetailRequested = (starId: string) => emit('onOpenStarDetailRequested', starId);
+
+onMounted(() => {
+  showAll.value = !Boolean(userPlayer.value);
+});
 </script>
 
 <style scoped>

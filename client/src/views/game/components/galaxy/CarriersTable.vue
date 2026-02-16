@@ -44,84 +44,49 @@
 </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import GameHelper from '../../../../services/gameHelper'
-import GridHelper from '../../../../services/gridHelper'
-import CarrierRowVue from './CarrierRow.vue'
-import SortInfo from '../../../../services/data/sortInfo'
+import CarrierRow from './CarrierRow.vue'
+import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
+import {useLocalStorage} from "@/util/reactiveHooks";
+import type {Carrier, Game, Star} from "@/types/game";
+import {useSortedMapObjectData} from "@/views/game/components/galaxy/table";
 
-export default {
-  components: {
-    'carrier-row': CarrierRowVue
-  },
-  data: function () {
-    let defaultSortInfo = new SortInfo([['ticksEta']], true);
+const SORT_INFO_KEY = 'galaxy_carriers_sortInfo';
 
-    return {
-      showAll: false,
-      defaultSortInfo: defaultSortInfo,
-      sortInfo: new SortInfo(defaultSortInfo.propertyPaths, defaultSortInfo.sortAscending),
-      sortInfoKey: 'galaxy_carriers_sortInfo',
-      searchFilter: ''
-    }
-  },
-  mounted () {
-    this.showAll = this.userPlayer == null;
-    this.sortInfo = SortInfo.fromJSON(localStorage.getItem(this.sortInfoKey), this.defaultSortInfo);
-  },
-  destroyed () {
-    localStorage.setItem(this.sortInfoKey, JSON.stringify(this.sortInfo));
-  },
-  methods: {
-    toggleShowAll () {
-      this.showAll = !this.showAll;
-    },
+const defaultSortInfo = createSortInfo([['ticksEta']], true);
 
-    onOpenCarrierDetailRequested (e) {
-      this.$emit('onOpenCarrierDetailRequested', e)
-    },
-    sort (...propertyPaths) {
-      this.sortInfo.swapSort(propertyPaths);
-    },
-    // TODO: Move this method to a base class of the table vue components (eg StarTable.vue) once we move to Vue 3 and can use Typescript.
-    missingPropertyFallbackFunc(obj, key) {
-      switch (key) {
-        case 'ownedByPlayer':
-          return this.playersMap.get(obj.ownedByPlayerId);
-        default:
-          return null;
-      }
-    }
-  },
-  computed: {
-    userPlayer () {
-      return GameHelper.getUserPlayer(this.$store.state.game);
-    },
-    playersMap() {
-      return new Map(this.$store.state.game.galaxy.players.map(p => [p._id, p]));
-    },
-    tableData () {
-      return this.$store.state.game.galaxy.carriers;
-    },
-    filteredTableData() {
-      let tableData = this.tableData;
+const emit = defineEmits<{
+  onOpenCarrierDetailRequested: [carrierId: string],
+}>();
 
-      let isSearchFilterMatch = c => c.name.toLowerCase().includes(this.searchFilter.toLowerCase());
+const store = useStore();
+const game = computed<Game>(() => store.state.game);
 
-      if (!this.showAll && this.userPlayer != null) {
-        tableData = tableData.filter(c => c.ownedByPlayerId === this.userPlayer._id && isSearchFilterMatch(c));
-      }
-      else {
-        tableData = tableData.filter(isSearchFilterMatch);
-      }
+const showAll = ref(false);
+const sortInfo = useLocalStorage(SORT_INFO_KEY, defaultSortInfo);
+const searchFilter = ref('');
 
-      return tableData;
-    },
-    sortedFilteredTableData () {
-      return GridHelper.dynamicSort(this.filteredTableData, this.sortInfo, this.missingPropertyFallbackFunc);
-    }
-  }
-}
+const userPlayer = computed(() => GameHelper.getUserPlayer(game.value));
+const tableData = computed(() => game.value.galaxy.carriers);
+
+const toggleShowAll = () => showAll.value = !showAll.value;
+
+const onOpenCarrierDetailRequested = (e) => emit('onOpenCarrierDetailRequested', e);
+
+const filter = (c: Carrier) => c.name.toLowerCase().includes(searchFilter.value.toLowerCase());
+
+const sortedFilteredTableData = useSortedMapObjectData(tableData, sortInfo, showAll, game, filter);
+
+const sort = (...propertyPaths) => {
+  sortInfo.value = swapSort(sortInfo.value, propertyPaths);
+};
+
+onMounted(() => {
+  showAll.value = !Boolean(userPlayer.value);
+});
 </script>
 
 <style scoped>

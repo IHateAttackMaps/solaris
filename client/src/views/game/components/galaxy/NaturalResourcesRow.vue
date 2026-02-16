@@ -17,37 +17,29 @@
 </tr>
 </template>
 
-<script>
-import PlayerIconVue from '../player/PlayerIcon.vue'
+<script setup lang="ts">
+import PlayerIcon from '../player/PlayerIcon.vue'
 import SpecialistIcon from '../specialist/SpecialistIcon.vue'
-import StarResourcesVue from '../star/StarResources.vue'
+import StarResources from '../star/StarResources.vue'
 import {eventBusInjectionKey} from "../../../../eventBus";
 import MapCommandEventBusEventNames from "@/eventBusEventNames/mapCommand";
 import { inject } from 'vue';
+import type {Star} from "@/types/game";
+import type {MapObject} from "@solaris-common";
 
-export default {
-  components: {
-    'player-icon': PlayerIconVue,
-    'specialist-icon': SpecialistIcon,
-    'star-resources': StarResourcesVue
-  },
-  props: {
-    star: Object
-  },
-  setup () {
-    return {
-      eventBus: inject(eventBusInjectionKey)
-    }
-  },
-  methods: {
-    clickStar (e) {
-      this.$emit('onOpenStarDetailRequested', this.star._id)
-    },
-    goToStar (e) {
-      this.eventBus.emit(MapCommandEventBusEventNames.MapCommandPanToObject, { object: this.star });
-    }
-  }
-}
+const props = defineProps<{
+  star: Star,
+}>();
+
+const emit = defineEmits<{
+  onOpenStarDetailRequested: [starId: string],
+}>();
+
+const eventBus = inject(eventBusInjectionKey)!;
+
+const clickStar = () => emit('onOpenStarDetailRequested', props.star._id);
+
+const goToStar = () => eventBus.emit(MapCommandEventBusEventNames.MapCommandPanToObject, { object: props.star as MapObject<string> });
 </script>
 
 <style scoped>

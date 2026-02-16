@@ -7,13 +7,13 @@
     <form @submit="handleSubmit">
       <div class="mb-2">
         <label for="name">New Guild Name</label>
-        <input type="text" required="required" class="form-control" minlength="4" maxlength="31" name="name" v-model="name" :disabled="isLoading"
+        <input type="text" :required="true" class="form-control" minlength="4" maxlength="31" name="name" v-model="name" :disabled="isLoading"
           @change="onGuildNameChanged">
       </div>
 
       <div class="mb-2">
         <label for="tag">New Guild Tag</label>
-        <input type="text" required="required" class="form-control" minlength="2" maxlength="4" name="tag" v-model="tag" :disabled="isLoading">
+        <input type="text" :required="true" class="form-control" minlength="2" maxlength="4" name="tag" v-model="tag" :disabled="isLoading">
       </div>
 
       <form-error-list :errors="errors"/>
@@ -40,70 +40,67 @@
   </view-container>
 </template>
 
-<script>
-import router from '../../router'
-import ViewContainer from '../components/ViewContainer.vue'
-import ViewTitle from '../components/ViewTitle.vue'
-import FormErrorList from '../components/FormErrorList.vue'
-import LoadingSpinner from '../components/LoadingSpinner.vue'
-import GuildApiService from '../../services/api/guild'
+<script setup lang="ts">
+import { ref, inject } from 'vue';
+import { useStore } from 'vuex';
+import router from '../../router';
+import ViewContainer from '../components/ViewContainer.vue';
+import ViewTitle from '../components/ViewTitle.vue';
+import FormErrorList from '../components/FormErrorList.vue';
+import LoadingSpinner from '../components/LoadingSpinner.vue';
+import {extractErrors, formatError, httpInjectionKey, isOk} from "@/services/typedapi";
+import {toastInjectionKey} from "@/util/keys";
+import {makeConfirm} from "@/util/confirm";
+import {renameGuild} from "@/services/typedapi/guild";
 
-export default {
-  components: {
-    'view-container': ViewContainer,
-    'view-title': ViewTitle,
-    'form-error-list': FormErrorList,
-    'loading-spinner': LoadingSpinner
-  },
-  data () {
-    return {
-      isLoading: false,
-      errors: [],
-      name: '',
-      tag: ''
-    }
-  },
-  methods: {
-    async handleSubmit (e) {
-      this.errors = []
+const httpClient = inject(httpInjectionKey)!;
+const toast = inject(toastInjectionKey)!;
 
-      if (!this.name) {
-        this.errors.push('Name is required.')
-      }
+const store = useStore();
+const confirm = makeConfirm(store);
 
-      if (!this.tag) {
-        this.errors.push('Tag is required.')
-      }
+const isLoading = ref(false);
+const errors = ref<string[]>([]);
+const name = ref('');
+const tag = ref('');
 
-      e.preventDefault()
+const handleSubmit = async (e: Event) => {
+  errors.value = [];
 
-      if (this.errors.length) return
-
-      if (!await this.$confirm('Rename guild', `Are you sure you want to rename the guild? It will cost 1 galactic credit.`)) {
-        return
-      }
-
-      try {
-        this.isLoading = true
-
-        let response = await GuildApiService.rename(this.name, this.tag)
-
-        if (response.status === 200) {
-          this.$toast.success(`You have renamed the guild ${this.name} [${this.tag}]!`)
-
-          router.push({ name: 'guild' })
-        }
-      } catch (err) {
-        console.log(err)
-        this.errors = err.response.data.errors || []
-      }
-
-      this.isLoading = false
-    },
-    onGuildNameChanged (e) {
-      this.name = this.name.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-    }
+  if (!name.value) {
+    errors.value.push('Name is required.');
   }
+
+  if (!tag.value) {
+    errors.value.push('Tag is required.');
+  }
+
+  e.preventDefault();
+
+  if (errors.value.length) {
+    return;
+  }
+
+  if (!await confirm('Rename guild', `Are you sure you want to rename the guild? It will cost 1 galactic credit.`)) {
+    return;
+  }
+
+  isLoading.value = true;
+
+  const response = await renameGuild(httpClient)(name.value, tag.value);
+  if (isOk(response)) {
+    toast.success(`You have renamed the guild ${name.value} [${tag.value}]!`);
+    router.push({name: 'guild'});
+  } else {
+    console.error(formatError(response));
+    errors.value = extractErrors(response);
+  }
+
+  isLoading.value = false;
+};
+
+const onGuildNameChanged = () => {
+  name.value = name.value.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();});
 }
 </script>
 

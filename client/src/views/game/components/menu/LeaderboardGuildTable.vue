@@ -33,55 +33,49 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, inject, computed, type Ref, onMounted } from "vue";
 import LoadingSpinner from '../../../components/LoadingSpinner.vue';
 import SortableLeaderboard from './SortableLeaderboard.vue';
-import GuildApiService from '../../../../services/api/guild';
+import type {GuildLeaderboard, GuildSortingKey} from "@solaris-common";
+import {formatError, httpInjectionKey, isOk} from "@/services/typedapi";
+import {listGuildLeaderboard} from "@/services/typedapi/guild";
 
-export default {
-  components: {
-    'loading-spinner': LoadingSpinner,
-    'sortable-leaderboard': SortableLeaderboard
-  },
-  data () {
-    return {
-      leaderboards: {},
-      isLoading: true,
-      sortingKey: 'totalRank',
-      totalGuilds: 0
-    }
-  },
-  async mounted () {
-    await this.loadLeaderboard(this.sortingKey);
-  },
-  methods: {
-    async sortLeaderboard (key) {
-      this.sortingKey = key;
-      await this.loadLeaderboard(key);
-    },
-    async loadLeaderboard (key) {
-      if (this.leaderboards[key]) {
-        return;
-      }
-      this.isLoading = true;
-      try {
-        const response = await GuildApiService.getLeaderboard(100, key);
-        if (response.status === 200) {
-          this.leaderboards[key] = response.data.leaderboard;
-          this.totalGuilds = response.data.totalGuilds;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-      this.isLoading = false;
-    }
-  },
-  computed: {
-    leaderboard () {
-      return this.leaderboards[this.sortingKey];
-    }
+const httpClient = inject(httpInjectionKey)!;
+
+const isLoading = ref(true);
+const leaderboards: Ref<Partial<Record<GuildSortingKey, GuildLeaderboard<string>[]>>> = ref({});
+const sortingKey = ref<GuildSortingKey>('totalRank');
+const totalGuilds = ref(0);
+
+const leaderboard = computed(() => leaderboards.value[sortingKey.value]);
+
+const loadLeaderboard = async (key: GuildSortingKey) => {
+  if (leaderboards.value[key]) {
+    return;
   }
-}
+
+  isLoading.value = true;
+
+  const response = await listGuildLeaderboard(httpClient)(key, 100);
+  if (isOk(response)) {
+    leaderboards.value[key] = response.data.leaderboard;
+    totalGuilds.value = response.data.totalGuilds;
+  } else {
+    console.error(formatError(response));
+  }
+
+  isLoading.value = false;
+};
+
+const sortLeaderboard = (key: GuildSortingKey) => {
+  sortingKey.value = key;
+  loadLeaderboard(key);
+};
+
+onMounted(() => {
+  loadLeaderboard(sortingKey.value);
+});
 </script>
 
 <style scoped>

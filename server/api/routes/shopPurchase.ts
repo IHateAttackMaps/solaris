@@ -3,18 +3,17 @@ import { DependencyContainer } from "../../services/types/DependencyContainer";
 import ShopController from '../controllers/shop';
 import { MiddlewareContainer } from "../middleware";
 import {SingleRouter} from "../singleRoute";
+import {createShopPurchaseRoutes} from "solaris-common";
+import {createRoutes} from "../typedapi/routes";
 
 export default (router: SingleRouter, mw: MiddlewareContainer, validator: ExpressJoiInstance, container: DependencyContainer) => {
     const controller = ShopController(container);
+    const routes = createShopPurchaseRoutes();
+    const answer = createRoutes(router, mw);
 
-    router.get('/api/shop/galacticcredits/purchase',
-            mw.auth.authenticate(),
-            controller.purchase
-    );
-
-    router.get('/api/shop/galacticcredits/purchase/process',
-            mw.auth.authenticate(),
-            controller.process
+    answer(routes.purchaseGalacticCredits,
+        mw.auth.authenticate(),
+        controller.purchase,
     );
 
     return router;

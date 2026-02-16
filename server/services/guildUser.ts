@@ -2,7 +2,7 @@ import { DBObjectId } from "./types/DBObjectId";
 import Repository from "./repository";
 import { User } from "./types/User";
 import GuildService from "./guild";
-import { GuildUserWithTag } from "./types/Guild";
+import { GuildUserWithTag } from "solaris-common";
 
 export default class UserGuildService {
     userRepo: Repository<User>;
@@ -16,7 +16,7 @@ export default class UserGuildService {
         this.guildService = guildService;
     }
 
-    async listUsersWithGuildTags(userIds: DBObjectId[]): Promise<GuildUserWithTag[]> {
+    async listUsersWithGuildTags(userIds: DBObjectId[]): Promise<GuildUserWithTag<DBObjectId>[]> {
         let users = await this.userRepo.find({
             _id: {
                 $in: userIds

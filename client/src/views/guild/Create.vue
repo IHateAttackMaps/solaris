@@ -17,13 +17,13 @@
     <form @submit="handleSubmit">
       <div class="mb-2">
         <label for="name">Guild Name</label>
-        <input type="text" required="required" class="form-control" minlength="4" maxlength="64" name="name" v-model="name" :disabled="isLoading"
+        <input type="text" :required="true" class="form-control" minlength="4" maxlength="64" name="name" v-model="name" :disabled="isLoading"
           @change="onGuildNameChanged">
       </div>
 
       <div class="mb-2">
         <label for="tag">Guild Tag</label>
-        <input type="text" required="required" class="form-control" minlength="2" maxlength="4" name="tag" v-model="tag" :disabled="isLoading">
+        <input type="text" :required="true" class="form-control" minlength="2" maxlength="4" name="tag" v-model="tag" :disabled="isLoading">
       </div>
 
       <form-error-list :errors="errors"/>
@@ -50,70 +50,64 @@
   </view-container>
 </template>
 
-<script>
-import router from '../../router'
-import ViewContainer from '../components/ViewContainer.vue'
-import ViewTitle from '../components/ViewTitle.vue'
-import FormErrorList from '../components/FormErrorList.vue'
-import LoadingSpinner from '../components/LoadingSpinner.vue'
-import GuildApiService from '../../services/api/guild'
+<script setup lang="ts">
+import { inject, ref } from 'vue';
+import { useStore } from 'vuex';
+import router from '../../router';
+import ViewContainer from '../components/ViewContainer.vue';
+import ViewTitle from '../components/ViewTitle.vue';
+import FormErrorList from '../components/FormErrorList.vue';
+import LoadingSpinner from '../components/LoadingSpinner.vue';
+import {extractErrors, formatError, httpInjectionKey, isOk} from "@/services/typedapi";
+import {toastInjectionKey} from "@/util/keys";
+import {makeConfirm} from "@/util/confirm";
+import {createGuild} from "@/services/typedapi/guild";
 
-export default {
-  components: {
-    'view-container': ViewContainer,
-    'view-title': ViewTitle,
-    'form-error-list': FormErrorList,
-    'loading-spinner': LoadingSpinner
-  },
-  data () {
-    return {
-      isLoading: false,
-      errors: [],
-      name: '',
-      tag: ''
-    }
-  },
-  methods: {
-    async handleSubmit (e) {
-      this.errors = []
+const httpClient = inject(httpInjectionKey)!;
+const toast = inject(toastInjectionKey)!;
 
-      if (!this.name) {
-        this.errors.push('Name is required.')
-      }
+const store = useStore();
+const confirm = makeConfirm(store);
 
-      if (!this.tag) {
-        this.errors.push('Tag is required.')
-      }
+const isLoading = ref(false);
+const errors = ref<string[]>([]);
+const name = ref('');
+const tag = ref('');
 
-      e.preventDefault()
+const onGuildNameChanged = () => {
+  name.value = name.value.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();});
+};
 
-      if (this.errors.length) return
+const handleSubmit = async (e: Event) => {
+  errors.value = [];
 
-      if (!await this.$confirm('Found guild', `Are you sure you want to found a guild? It will cost 3 galactic credits.`)) {
-        return
-      }
+  if (!name.value) {
+    errors.value.push('Name is required.')
+  }
 
-      try {
-        this.isLoading = true
+  if (!tag.value) {
+    errors.value.push('Tag is required.')
+  }
 
-        // Call the account create API endpoint
-        let response = await GuildApiService.create(this.name, this.tag)
+  e.preventDefault();
 
-        if (response.status === 201) {
-          this.$toast.success(`You have founded the guild ${this.name} [${this.tag}]!`)
+  if (errors.value.length) {
+    return;
+  }
 
-          router.push({ name: 'guild' })
-        }
-      } catch (err) {
-        console.log(err)
-        this.errors = err.response.data.errors || []
-      }
+  if (!await confirm('Found guild', `Are you sure you want to found a guild? It will cost 3 galactic credits.`)) {
+    return;
+  }
 
-      this.isLoading = false
-    },
-    onGuildNameChanged (e) {
-      this.name = this.name.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-    }
+  isLoading.value = true;
+
+  const response = await createGuild(httpClient)(name.value, tag.value);
+  if (isOk(response)) {
+    toast.success(`You have founded the guild ${name.value} [${tag.value}]!`);
+    router.push({ name: 'guild' });
+  } else {
+    console.error(formatError(response));
+    errors.value = extractErrors(response);
   }
 }
 </script>

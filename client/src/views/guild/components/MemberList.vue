@@ -25,94 +25,108 @@
     </template>
   </sortable-leaderboard>
 </template>
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import SortableLeaderboard from '../../game/components/menu/SortableLeaderboard.vue';
 import GameHelper from '../../../services/gameHelper';
+import {type GuildWithUsers, type UserPublic} from "@solaris-common";
 
-export default {
-  components: {
-    'sortable-leaderboard': SortableLeaderboard
-  },
-  props: {
-    guild: Object
-  },
-  data() {
-    return {
-      members: [],
-      sortingKey: 'role'
-    };
-  },
-  mounted() {
-    if (this.guild.leader) {
-      this.guild.leader.role = 'leader';
-      this.members.push(this.guild.leader);
-    }
+export type GuildRole = 'leader' | 'officer' | 'member' | 'invitee' | 'applicant';
 
-    if (this.guild.officers) {
-      this.guild.officers.forEach(officer => {
-        officer.role = 'officer';
-        this.members.push(officer);
-      });
-    }
+type SortingKey = 'role' | 'rank' | 'victories' | 'renown';
 
-    if (this.guild.members) {
-      this.guild.members.forEach(member => {
-        member.role = 'member';
-        this.members.push(member);
-      });
-    }
+export interface GuildUser<ID> extends UserPublic<ID> {
+  role: GuildRole;
+}
 
-    if (this.guild.invitees) {
-      this.guild.invitees.forEach(invitee => {
-        invitee.role = 'invitee';
-        this.members.push(invitee);
-      });
-    }
+const props = defineProps<{
+  guild: GuildWithUsers<string>,
+}>();
 
-    if (this.guild.applicants) {
-      this.guild.applicants.forEach(applicant => {
-        applicant.role = 'applicant';
-        this.members.push(applicant);
-      });
-    }
-  },
-  methods: {
-    sortMemberList (key) {
-      this.sortingKey = key;
-      const comparer = this.getComparer(key);
-      this.members.sort(comparer);
-    },
-    getComparer (key) {
-      if (key === 'role') {
-        return (u1, u2) => this.roleToValue(u2.role) - this.roleToValue(u1.role);
-      } else if (key === 'rank') {
-        return (u1, u2) => u2.achievements.rank - u1.achievements.rank;
-      } else if (key === 'victories') {
-        return (u1, u2) => u2.achievements.victories - u1.achievements.victories;
-      } else if (key === 'renown') {
-        return (u1, u2) => u2.achievements.renown - u1.achievements.renown;
-      } else {
-        return (a, b) => 0;
-      }
-    },
-    roleToValue (role) {
-      if (role === 'leader') {
-        return 3;
-      } else if (role === 'officer') {
-        return 2;
-      } else if (role === 'member') {
-        return 1;
-      } else {
-        return 0;
-      }
-    }
-  },
-  computed: {
-    isInGuild () {
-      return GameHelper.isInGuild(this.guild, this.$store.state.userId)
-    }
+const store = useStore();
+
+const sortingKey = ref<SortingKey>('role');
+const members = ref<GuildUser<string>[]>([]);
+
+const isInGuild = computed(() => GameHelper.isInGuild(props.guild, store.state.userId));
+
+const roleToValue = (role: GuildRole) => {
+  if (role === 'leader') {
+    return 3;
+  } else if (role === 'officer') {
+    return 2;
+  } else if (role === 'member') {
+    return 1;
+  } else {
+    return 0;
   }
 };
+
+const getComparer = (key: string) => {
+  if (key === 'role') {
+    return (u1: GuildUser<string>, u2: GuildUser<string>) => roleToValue(u2.role) - roleToValue(u1.role);
+  } else if (key === 'rank') {
+    return (u1: GuildUser<string>, u2: GuildUser<string>) => u2.achievements.rank - u1.achievements.rank;
+  } else if (key === 'victories') {
+    return (u1: GuildUser<string>, u2: GuildUser<string>) => u2.achievements.victories - u1.achievements.victories;
+  } else if (key === 'renown') {
+    return (u1: GuildUser<string>, u2: GuildUser<string>) => u2.achievements.renown - u1.achievements.renown;
+  } else {
+    return (a: GuildUser<string>, b: GuildUser<string>) => 0;
+  }
+};
+
+const sortMemberList = (key: SortingKey) => {
+  sortingKey.value = key;
+  const comparer = getComparer(key);
+  members.value.sort(comparer);
+};
+
+onMounted(() => {
+  if (props.guild.leader) {
+    members.value.push({
+      role: 'leader',
+      ...props.guild.leader,
+    });
+  }
+
+  if (props.guild.officers) {
+    props.guild.officers.forEach(officer => {
+      members.value.push({
+        role: 'officer',
+        ...officer,
+      });
+    });
+  }
+
+  if (props.guild.members) {
+    props.guild.members.forEach(member => {
+      members.value.push({
+        role: 'member',
+        ...member,
+      });
+    });
+  }
+
+  if (props.guild.invitees) {
+    props.guild.invitees.forEach(invitee => {
+      members.value.push({
+        role: 'invitee',
+        ...invitee,
+      });
+    });
+  }
+
+  if (props.guild.applicants) {
+    props.guild.applicants.forEach(applicant => {
+      members.value.push({
+        role: 'applicant',
+        ...applicant,
+      });
+    });
+  }
+});
 </script>
 <style scoped>
 </style>

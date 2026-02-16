@@ -3,110 +3,115 @@ import { DependencyContainer } from "../../services/types/DependencyContainer";
 import GuildController from '../controllers/guild';
 import { MiddlewareContainer } from "../middleware";
 import {SingleRouter} from "../singleRoute";
+import {createGuildRoutes} from "solaris-common";
+import {DBObjectId} from "../../services/types/DBObjectId";
+import {createRoutes} from "../typedapi/routes";
 
 export default (router: SingleRouter, mw: MiddlewareContainer, validator: ExpressJoiInstance, container: DependencyContainer) => {
     const controller = GuildController(container);
+    const routes = createGuildRoutes<DBObjectId>();
+    const answer = createRoutes(router, mw);
 
-    router.get('/api/guild/list',
+    answer(routes.listGuilds,
             mw.auth.authenticate(),
             controller.list
     );
 
-    router.get('/api/guild',
+    answer(routes.detailMyGuild,
             mw.auth.authenticate(),
             controller.detailMine
     );
 
-    router.get('/api/guild/leaderboard',
+    answer(routes.listGuildLeaderboard,
             controller.listLeaderboard
     );
 
-    router.get('/api/guild/invites',
+    answer(routes.listMyGuildInvites,
             mw.auth.authenticate(),
             controller.listMyInvites
     );
 
-    router.get('/api/guild/applications',
+    answer(routes.listMyGuildApplications,
             mw.auth.authenticate(),
             controller.listMyApplications
     );
 
-    router.get('/api/guild/:guildId',
+    answer(routes.detailGuild,
             mw.auth.authenticate(),
             controller.detail
     );
 
-    router.post('/api/guild',
+    answer(routes.createGuild,
             mw.auth.authenticate(),
             controller.create
     );
 
-    router.patch('/api/guild',
+    answer(routes.renameGuild,
             mw.auth.authenticate(),
             controller.rename
     );
 
-    router.delete('/api/guild/:guildId',
+    answer(routes.deleteGuild,
             mw.auth.authenticate(),
             controller.delete
     );
 
-    router.put('/api/guild/:guildId/invite',
+    answer(routes.inviteGuild,
             mw.auth.authenticate(),
             controller.invite
     );
 
-    router.patch('/api/guild/:guildId/uninvite/:userId',
+    answer(routes.uninviteGuild,
             mw.auth.authenticate(),
             controller.uninvite
     );
 
-    router.patch('/api/guild/:guildId/accept/:userId',
+    answer(routes.acceptGuildInviteForApplicant,
             mw.auth.authenticate(),
             controller.acceptInviteForApplicant
     );
 
-    router.patch('/api/guild/:guildId/accept',
+    answer(routes.acceptGuildInvite,
             mw.auth.authenticate(),
             controller.acceptInvite
     );
 
-    router.patch('/api/guild/:guildId/decline',
+    answer(routes.declineGuildInvite,
             mw.auth.authenticate(),
             controller.declineInvite
     );
 
-    router.put('/api/guild/:guildId/apply',
+    answer(routes.applyToGuild,
             mw.auth.authenticate(),
             controller.apply
     );
 
-    router.patch('/api/guild/:guildId/withdraw',
+    answer(routes.withdrawGuildApplication,
             mw.auth.authenticate(),
             controller.withdraw
     );
 
-    router.patch('/api/guild/:guildId/reject/:userId',
+    answer(routes.rejectGuildApplication,
             mw.auth.authenticate(),
             controller.reject
     );
 
-    router.patch('/api/guild/:guildId/leave',
+    answer(routes.leaveGuild,
             mw.auth.authenticate(),
             controller.leave
     );
 
-    router.patch('/api/guild/:guildId/promote/:userId',
+    answer(routes.promoteGuildMember,
             mw.auth.authenticate(),
             controller.promote
     );
 
-    router.patch('/api/guild/:guildId/demote/:userId',
+    answer(routes.demoteGuildMember,
             mw.auth.authenticate(),
             controller.demote
     );
 
-    router.patch('/api/guild/:guildId/kick/:userId',
+    answer(routes.kickGuildMember,
             mw.auth.authenticate(),
             controller.kick
     );

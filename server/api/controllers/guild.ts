@@ -1,5 +1,5 @@
 import { DependencyContainer } from '../../services/types/DependencyContainer';
-import { mapToGuildCreateGuildRequest, mapToGuildInviteUserRequest, mapToGuildRenameGuildRequest } from '../requests/guild';
+import {parseGuildCreateRequest, parseGuildInviteUserRequest, parseGuildRenameRequest} from '../requests/guild';
 
 export default (container: DependencyContainer) => {
     return {
@@ -67,7 +67,7 @@ export default (container: DependencyContainer) => {
         },
         create: async (req, res, next) => {
             try {
-                const reqObj = mapToGuildCreateGuildRequest(req.body);
+                const reqObj = parseGuildCreateRequest(req.body);
 
                 let result = await container.guildService.create(req.session.userId, reqObj.name, reqObj.tag);
                     
@@ -79,7 +79,7 @@ export default (container: DependencyContainer) => {
         },
         rename: async (req, res, next) => {
             try {
-                const reqObj = mapToGuildRenameGuildRequest(req.body);
+                const reqObj = parseGuildRenameRequest(req.body);
                 
                 await container.guildService.rename(req.session.userId, reqObj.name, reqObj.tag);
                     
@@ -101,7 +101,7 @@ export default (container: DependencyContainer) => {
         },
         invite: async (req, res, next) => {
             try {
-                const reqObj = mapToGuildInviteUserRequest(req.body);
+                const reqObj = parseGuildInviteUserRequest(req.body);
                 
                 let result = await container.guildService.invite(reqObj.username, req.params.guildId, req.session.userId);
                     

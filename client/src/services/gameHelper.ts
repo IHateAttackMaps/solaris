@@ -1,16 +1,14 @@
-import moment, {type Moment} from 'moment'
+import moment from 'moment'
 import DiplomacyHelper from './diplomacyHelper.js'
 import type {Carrier, Game, Player, Star} from "../types/game";
 import {
-  type BasePlayerDebtEvent, type GameInfoState,
-  type GameSettings, type GameSettingsGalaxyBase,
-  type GameStateDetail,
+  type GameInfoState,
+  type GameSettingsGalaxyBase,
   type Location,
-  type MapObject,
+  type MapObject, type PlayerDebtEventData, type ResearchTypeNotRandom,
   type Team
 } from '@solaris-common';
 import type {RulerPoint} from '@/types/ruler';
-import {addTicksToTime} from "@/util/time";
 
 class GameHelper {
   getUserPlayer(game: Game): Player | undefined {
@@ -595,7 +593,7 @@ class GameHelper {
     return false;
   }
 
-  playerHasLowestTechLevel(game: Game, techKey, player) {
+  playerHasLowestTechLevel(game: Game, techKey: ResearchTypeNotRandom, player: Player) {
     const levels: number[] = [...new Set(game.galaxy.players
       .filter(p => p.research != null)
       .map(p => {
@@ -612,7 +610,7 @@ class GameHelper {
     return minLevel === player.research[techKey].level
   }
 
-  playerHasHighestTechLevel(game: Game, techKey, player) {
+  playerHasHighestTechLevel(game: Game, techKey: ResearchTypeNotRandom, player: Player) {
     const levels: number[] = [...new Set(game.galaxy.players
       .filter(p => p.research != null)
       .map(p => {
@@ -627,18 +625,6 @@ class GameHelper {
     const maxLevel = levels.sort((a, b) => b - a)[0]
 
     return maxLevel === player.research[techKey].level
-  }
-
-  userPlayerHasHighestTechLevel(game: Game, techKey) {
-    const userPlayer = this.getUserPlayer(game)
-
-    return this.playerHasHighestTechLevel(game, techKey, userPlayer)
-  }
-
-  userPlayerHasLowestTechLevel(game: Game, techKey) {
-    const userPlayer = this.getUserPlayer(game)
-
-    return this.playerHasLowestTechLevel(game, techKey, userPlayer)
   }
 
   getPlayerStatus(player) {
@@ -1141,7 +1127,7 @@ class GameHelper {
     return game.settings.general.featured === true
   }
 
-  getLedgerGameEventPlayerSummary(game: Game, gameEvent: BasePlayerDebtEvent<string>) {
+  getLedgerGameEventPlayerSummary(game: Game, gameEvent: { data: PlayerDebtEventData<string> }) {
     const debtor = this.getPlayerById(game, gameEvent.data.debtorPlayerId)
     const creditor = this.getPlayerById(game, gameEvent.data.creditorPlayerId)
     const isCreditor = this.getUserPlayer(game) == creditor

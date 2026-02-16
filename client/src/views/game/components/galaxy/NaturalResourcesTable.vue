@@ -49,86 +49,50 @@
 </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import GameHelper from '../../../../services/gameHelper'
-import GridHelper from '../../../../services/gridHelper'
-import NaturalResourcesRowVue from './NaturalResourcesRow.vue'
-import SortInfo from '../../../../services/data/sortInfo'
+import NaturalResourcesRow from './NaturalResourcesRow.vue'
+import {createSortInfo, swapSort} from '../../../../services/data/sortInfo'
+import {useLocalStorage} from "@/util/reactiveHooks";
+import type {Game} from "@/types/game";
+import {useSortedMapObjectData} from "@/views/game/components/galaxy/table";
 
-export default {
-  components: {
-    'natural-resources-row': NaturalResourcesRowVue
-  },
-  data: function () {
-    let defaultSortInfo = new SortInfo([['naturalResources', 'economy']], false);
+const SORT_INFO_KEY = 'galaxy_naturalResources_sortInfo';
 
-    return {
-      showAll: false,
-      defaultSortInfo: defaultSortInfo,
-      sortInfo: new SortInfo(defaultSortInfo.propertyPaths, defaultSortInfo.sortAscending),
-      sortInfoKey: 'galaxy_naturalResources_sortInfo',
-      searchFilter: ''
-    }
-  },
-  mounted () {
-    this.showAll = this.userPlayer == null;
-    this.sortInfo = SortInfo.fromJSON(localStorage.getItem(this.sortInfoKey), this.defaultSortInfo);
-  },
-  destroyed () {
-    localStorage.setItem(this.sortInfoKey, JSON.stringify(this.sortInfo));
-  },
-  methods: {
-    toggleShowAll () {
-      this.showAll = !this.showAll;
-    },
-    sort(...propertyPaths) {
-      this.sortInfo.swapSort(propertyPaths);
-    },
-    onOpenStarDetailRequested (e) {
-      this.$emit('onOpenStarDetailRequested', e)
-    },
-    // TODO: Move this method to a base class of the table vue components (eg StarTable.vue) once we move to Vue 3 and can use Typescript.
-    missingPropertyFallbackFunc(obj, key) {
-      switch (key) {
-        case 'ownedByPlayer':
-          return this.playersMap.get(obj.ownedByPlayerId);
-        default:
-          return null;
-      }
-    }
-  },
-  computed: {
-    userPlayer() {
-      return GameHelper.getUserPlayer(this.$store.state.game)
-    },
-    playersMap() {
-      return new Map(this.$store.state.game.galaxy.players.map(p => [p._id, p]));
-    },
-    tableData() {
-      return this.$store.state.game.galaxy.stars;
-    },
-    filteredTableData() {
-      let tableData = this.tableData;
+const defaultSortInfo = createSortInfo([['naturalResources', 'economy']], false);
 
-      let isSearchFiltermatch = s => s.name.toLowerCase().includes(this.searchFilter.toLowerCase());
+const emit = defineEmits<{
+  onOpenStarDetailRequested: [starId: string],
+}>();
 
-      if (!this.showAll && this.userPlayer != null) {
-        tableData = tableData.filter(s => s.ownedByPlayerId === this.userPlayer._id && isSearchFiltermatch(s));
-      }
-      else {
-        tableData = tableData.filter(isSearchFiltermatch);
-      }
+const store = useStore();
+const game = computed<Game>(() => store.state.game);
 
-      return tableData;
-    },
-    sortedFilteredTableData() {
-      return GridHelper.dynamicSort(this.filteredTableData, this.sortInfo, this.missingPropertyFallbackFunc);
-    },
-    isSplitResources() {
-      return GameHelper.isSplitResources(this.$store.state.game);
-    }
-  }
-}
+const showAll = ref(false);
+const sortInfo = useLocalStorage(SORT_INFO_KEY, defaultSortInfo);
+const searchFilter = ref('');
+
+const userPlayer = computed(() => GameHelper.getUserPlayer(game.value));
+const isSplitResources = computed(() => GameHelper.isSplitResources(game.value));
+const tableData = computed(() => game.value.galaxy.stars);
+
+const onOpenStarDetailRequested = (e: string) => emit('onOpenStarDetailRequested', e);
+
+const toggleShowAll = () => showAll.value = !showAll.value;
+
+const sort = (...propertyPaths) => {
+  sortInfo.value = swapSort(sortInfo.value, propertyPaths);
+};
+
+const filter = (s) => s.name.toLowerCase().includes(searchFilter.value.toLowerCase());
+
+const sortedFilteredTableData = useSortedMapObjectData(tableData, sortInfo, showAll, game, filter);
+
+onMounted(() => {
+  showAll.value = userPlayer.value != null;
+});
 </script>
 
 <style scoped>

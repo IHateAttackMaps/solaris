@@ -24,7 +24,8 @@
 import router from '../../router'
 import { useStore, type Store } from 'vuex';
 import type {State} from "@/store";
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
+import {configInjectionKey} from "@/config";
 
 type Props = {
   title: string,
@@ -36,11 +37,13 @@ type Props = {
 
 const { title, navigation  = "main-menu", icon = "home", hideHomeButton, showSocialLinks } = defineProps<Props>();
 
+const config = inject(configInjectionKey)!;
+
 const store: Store<State> = useStore();
 
 const isLoggedIn = computed(() => Boolean(store.state.userId));
 
-const documentationUrl = import.meta.env.VUE_APP_DOCUMENTATION_URL;
+const documentationUrl = config.appDocumentationUrl;
 
 const navigate = () => {
   if (isLoggedIn.value) {
