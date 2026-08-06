@@ -154,10 +154,13 @@ const confirmSendTechnology = async () => {
 
     player.value.reputation = response.data.reputation;
 
+    isSendingTech.value = false;
+
     await getTradeableTechnologies();
   } else {
     console.error(formatError(response));
     errors.value = extractErrors(response);
+    isSendingTech.value = false;
   }
 };
 
