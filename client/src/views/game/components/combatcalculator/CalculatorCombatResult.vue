@@ -2,9 +2,9 @@
   <div class="cg-result">
     <div class="cg-result-objects">
       <calculator-combat-result-group
-        v-for="(attackGroup, index) in result.groups"
+        v-for="(attackGroup, index) in sortedGroups"
         :key="index"
-        :groups="result.groups"
+        :groups="sortedGroups"
         :group="attackGroup"
         :groupIndex="index"
       ></calculator-combat-result-group>
@@ -21,11 +21,12 @@
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
-import type {
-  CombatBaseCarrier,
-  CombatBasePlayer,
-  CombatBaseStar,
-  DetailedCombatResult,
+import {
+  type CombatBaseCarrier,
+  type CombatBasePlayer,
+  type CombatBaseStar,
+  type DetailedCombatResult,
+  sorterByProperty,
 } from "@solaris/common";
 import CalculatorCombatResultGroup from "@/views/game/components/combatcalculator/CalculatorCombatResultGroup.vue";
 import { useGameServices } from "@/util/gameServices";
@@ -44,8 +45,13 @@ const serviceProvider = useGameServices();
 const winner = computed(() =>
   serviceProvider.combatService.getWinnerDetailed(props.result),
 );
+
 const winnerName = computed(
   () => winner.value && `Group ${props.result.groups.indexOf(winner.value)}`,
+);
+
+const sortedGroups = computed(() =>
+  props.result.groups.toSorted(sorterByProperty("id")),
 );
 
 const neededForOthers = computed(() => {
