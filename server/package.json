@@ -21,6 +21,7 @@
         "start-db-sync-indices:prod": "node dist/tools/syncIndices.js",
         "restore-game": "tsx tools/restoreGame.ts",
         "research-progress-samples": "tsx tools/researchProgressSamples.ts",
+        "combat-sim": "tsx tools/oldCombatSim.ts",
         "prebuild": "rm -rf ./dist",
         "build": "tsc",
         "check": "tsc --noEmit"
