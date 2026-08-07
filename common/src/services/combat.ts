@@ -534,55 +534,126 @@ const findGroup = <ID extends Id>(result: CombatResult<ID>, playerId: ID) => {
     );
 };
 
-const estimateNeeded = <
+const computeRemainingShips = <
     ID extends Id,
     P extends CombatBasePlayer<ID>,
     S extends CombatBaseStar<ID>,
     C extends CombatBaseCarrier<ID>,
 >(
-    combatResult: DetailedCombatResult<ID, P, S, C>,
+    groups: DetailedCombatResultGroup<ID, P, S, C>[],
     estimateForGroup: DetailedCombatResultGroup<ID, P, S, C>,
-    originalGroups: CombatGroup<ID, P, S, C>[],
-    terminationCondition:
-        | "greaterThanZeroShips"
-        | "eliminateOtherGroups" = "greaterThanZeroShips",
 ) => {
-    const originalShips = estimateForGroup.shipsBefore;
+    return groups
+        .filter((g) => g.id !== estimateForGroup.id)
+        .map((g) => g.shipsAfter)
+        .reduce((a, b) => a + b, 0);
+};
 
-    if (estimateForGroup.shipsAfter > 0) {
-        return originalShips;
+const chooseNext = <
+    ID extends Id,
+    P extends CombatBasePlayer<ID>,
+    S extends CombatBaseStar<ID>,
+    C extends CombatBaseCarrier<ID>,
+>(
+    current: number,
+    groups: DetailedCombatResultGroup<ID, P, S, C>[],
+    estimateForId: string,
+): number | undefined => {
+    const estimateFor = groups.find((g) => g.id === estimateForId);
+
+    if (!estimateFor) {
+        return undefined;
     }
 
-    let shipsNeeded = originalShips + 1;
+    if (estimateFor.shipsKilled === 0) {
+        return current + 1;
+    }
+
+    const remaining = computeRemainingShips(groups, estimateFor);
+
+    const ratio = estimateFor.shipsLost / estimateFor.shipsKilled;
+
+    const neededMore = Math.max(Math.floor(remaining * ratio), 1);
+
+    return current + neededMore;
+};
+
+const modifyGroups = <
+    ID extends Id,
+    P extends CombatBasePlayer<ID>,
+    S extends CombatBaseStar<ID>,
+    C extends CombatBaseCarrier<ID>,
+>(
+    originalGroups: CombatGroup<ID, P, S, C>[],
+    estimateForGroup: DetailedCombatResultGroup<ID, P, S, C>,
+    shipsNeeded: number,
+) => {
+    return originalGroups.map((gr) => {
+        if (gr.id === estimateForGroup.id) {
+            const grOriginalShips = gr.originalShips;
+
+            const newGr: CombatGroup<ID, P, S, C> = {
+                ...gr,
+                carriers: gr.carriers.map((c) => ({ ...c }) as C),
+                star: gr.star ? ({ ...gr.star } as S) : undefined,
+                originalShips: shipsNeeded,
+                ships: shipsNeeded,
+                shipsKilled: 0,
+            };
+            if (newGr.star) {
+                newGr.star.ships =
+                    newGr.star.ships! + (shipsNeeded - grOriginalShips);
+            } else {
+                newGr.carriers[0].ships =
+                    newGr.carriers[0].ships! + (shipsNeeded - grOriginalShips);
+            }
+            return newGr;
+        } else {
+            return gr;
+        }
+    });
+};
+
+const findBound = <
+    ID extends Id,
+    P extends CombatBasePlayer<ID>,
+    S extends CombatBaseStar<ID>,
+    C extends CombatBaseCarrier<ID>,
+>(
+    estimateForGroup: DetailedCombatResultGroup<ID, P, S, C>,
+    combatResult: DetailedCombatResult<ID, P, S, C>,
+    originalGroups: CombatGroup<ID, P, S, C>[],
+    startingShips: number,
+    nextStep: (
+        current: number,
+        groups: DetailedCombatResultGroup<ID, P, S, C>[],
+        estimateForId: string,
+    ) => number | undefined,
+    terminationCondition:
+        | "greaterThanZeroShips"
+        | "otherGroupsAlive"
+        | "eliminateOtherGroups" = "greaterThanZeroShips",
+): number => {
+    if (estimateForGroup.shipsAfter > 0) {
+        return startingShips;
+    }
+
+    let shipsNeeded = nextStep(
+        startingShips,
+        combatResult.groups,
+        estimateForGroup.id,
+    );
 
     while (true) {
-        const modifiedGroups = originalGroups.map((gr) => {
-            if (gr.id === estimateForGroup.id) {
-                const newGr = {
-                    ...gr,
-                    originalShips: shipsNeeded,
-                    ships: shipsNeeded,
-                    shipsKilled: 0,
-                };
-                if (newGr.star) {
-                    newGr.star = {
-                        ...newGr.star,
-                        ships:
-                            newGr.star.ships! + (shipsNeeded - originalShips),
-                    };
-                } else {
-                    newGr.carriers[0] = {
-                        ...newGr.carriers[0],
-                        ships:
-                            newGr.carriers[0].ships! +
-                            (shipsNeeded - originalShips),
-                    };
-                }
-                return newGr;
-            } else {
-                return gr;
-            }
-        });
+        if (shipsNeeded === undefined) {
+            return startingShips;
+        }
+
+        const modifiedGroups = modifyGroups(
+            originalGroups,
+            estimateForGroup,
+            shipsNeeded,
+        );
 
         const newResult = combatLoop(
             { round: 0, groups: modifiedGroups },
@@ -601,19 +672,70 @@ const estimateNeeded = <
             const otherGroups = newResult.groups.filter(
                 (g) => g != groupInNew!,
             );
+
             if (otherGroups.every((g) => g.shipsAfter === 0)) {
+                break;
+            }
+        } else if (terminationCondition === "otherGroupsAlive") {
+            const otherGroups = newResult.groups.filter(
+                (g) => g != groupInNew!,
+            );
+
+            if (otherGroups.some((g) => g.shipsAfter > 0)) {
                 break;
             }
         }
 
-        if (shipsNeeded > 10000) {
-            break;
-        }
-
-        shipsNeeded++;
+        shipsNeeded = nextStep(
+            shipsNeeded,
+            newResult.groups,
+            estimateForGroup.id,
+        );
     }
 
     return shipsNeeded;
+};
+
+const estimateNeeded = <
+    ID extends Id,
+    P extends CombatBasePlayer<ID>,
+    S extends CombatBaseStar<ID>,
+    C extends CombatBaseCarrier<ID>,
+>(
+    combatResult: DetailedCombatResult<ID, P, S, C>,
+    estimateForGroup: DetailedCombatResultGroup<ID, P, S, C>,
+    originalGroups: CombatGroup<ID, P, S, C>[],
+    terminationCondition:
+        | "greaterThanZeroShips"
+        | "eliminateOtherGroups" = "greaterThanZeroShips",
+) => {
+    const maxBound = findBound(
+        estimateForGroup,
+        combatResult,
+        originalGroups,
+        estimateForGroup.shipsAfter,
+        chooseNext,
+        terminationCondition,
+    );
+
+    const safeDecr = (n: number) => {
+        if (n <= 0) {
+            return undefined;
+        }
+
+        return n - 1;
+    };
+
+    return (
+        findBound(
+            estimateForGroup,
+            combatResult,
+            originalGroups,
+            maxBound,
+            (s, _a, _b) => safeDecr(s),
+            "otherGroupsAlive",
+        ) + 1
+    );
 };
 
 export class CombatService<ID extends Id> {
