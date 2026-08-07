@@ -79,6 +79,22 @@ function prompt(question: string): Promise<boolean> {
 
 const availableNames = () => MIGRATIONS.map((m) => m.name).join(", ");
 
+function printUsage() {
+    console.log(`Usage: npx ts-node tools/migrate.ts [options] [migration-name]
+
+Run database migrations.
+
+Options:
+  -y, --yes         Skip confirmation prompts
+  --force           Force re-run an already applied migration (requires migration-name)
+  --remove <name>   Remove a migration record from the applied list
+  --add <name>      Add a migration record to the applied list
+  -h, --help        Show this help message
+
+Available migrations:
+  ${MIGRATIONS.map((m) => m.name).join("\n  ")}`);
+}
+
 const job = makeJob("Migration", async (ctx) => {
     const log = ctx.log;
     const args = parseArgs(process.argv.slice(2));
@@ -229,6 +245,11 @@ const job = makeJob("Migration", async (ctx) => {
 
     log.info("All outstanding migrations applied.");
 });
+
+if (process.argv.includes("-h") || process.argv.includes("--help")) {
+    printUsage();
+    process.exit(0);
+}
 
 job();
 
