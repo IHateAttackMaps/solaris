@@ -10,11 +10,11 @@ import mongoose from "mongoose";
 let mongo: mongoose.Mongoose;
 let container: DependencyContainer;
 
-const startup = async (jobName) => {
+const startup = async (jobName, syncIndexes = false) => {
     const log = logger(jobName);
 
     mongo = await mongooseLoader(config, {
-        syncIndexes: true,
+        syncIndexes,
         poolSize: 1,
     });
 
@@ -36,9 +36,13 @@ export type JobParameters = {
 };
 
 export const makeJob =
-    (jobName: string, job: (params: JobParameters) => Promise<void>) =>
+    (
+        jobName: string,
+        job: (params: JobParameters) => Promise<void>,
+        options?: { syncIndexes?: boolean },
+    ) =>
     async () => {
-        const params = await startup(jobName);
+        const params = await startup(jobName, options?.syncIndexes);
 
         const log = params.log;
 
