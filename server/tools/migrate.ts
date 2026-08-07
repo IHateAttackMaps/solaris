@@ -28,10 +28,11 @@ interface ParsedArgs {
     remove?: string;
     add?: string;
     force: boolean;
+    list: boolean;
 }
 
 function parseArgs(args: string[]): ParsedArgs {
-    const result: ParsedArgs = { yes: false, force: false };
+    const result: ParsedArgs = { yes: false, force: false, list: false };
 
     for (let i = 0; i < args.length; i++) {
         const arg = args[i];
@@ -39,6 +40,8 @@ function parseArgs(args: string[]): ParsedArgs {
             result.yes = true;
         } else if (arg === "--force") {
             result.force = true;
+        } else if (arg === "--list") {
+            result.list = true;
         } else if (arg === "--remove") {
             const value = args[i + 1];
             if (!value || value.startsWith("--")) {
@@ -87,6 +90,7 @@ Run database migrations.
 Options:
   -y, --yes         Skip confirmation prompts
   --force           Force re-run an already applied migration (requires migration-name)
+  --list             List all applied migrations
   --remove <name>   Remove a migration record from the applied list
   --add <name>      Add a migration record to the applied list
   -h, --help        Show this help message
@@ -98,10 +102,33 @@ Available migrations:
 const job = makeJob("Migration", async (ctx) => {
     const log = ctx.log;
     const args = parseArgs(process.argv.slice(2));
-    const { migrationName, yes, remove, add, force } = args;
+    const { migrationName, yes, remove, add, force, list } = args;
 
     if (remove && add) {
         throw new Error("--remove and --add are mutually exclusive");
+    }
+
+    if (list && (remove || add || migrationName)) {
+        throw new Error(
+            "--list cannot be combined with --remove, --add, or a migration name",
+        );
+    }
+
+    if (list) {
+        const docs = await MigrationModel.find({})
+            .sort({ appliedAt: 1 })
+            .lean();
+        if (docs.length === 0) {
+            log.info("No migrations have been applied.");
+        } else {
+            log.info(`Applied migrations (${docs.length}):`);
+            for (const doc of docs) {
+                log.info(
+                    `  ${doc.name} — ${new Date(doc.appliedAt).toISOString()}`,
+                );
+            }
+        }
+        return;
     }
 
     if (remove) {
