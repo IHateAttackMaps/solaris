@@ -190,19 +190,26 @@ const fastForwardGame = async () => {
       "Are you sure you want to fast-forward this game?",
     )
   ) {
-    isLoading.value = true;
+    if (
+      await confirm(
+        `Check again`,
+        `Do you REALLY want to fast-forward the game? Is this the right game and the right server?`,
+      )
+    ) {
+      isLoading.value = true;
 
-    const response = await fastForward(httpClient)(props.game._id);
+      const response = await fastForward(httpClient)(props.game._id);
 
-    if (isOk(response)) {
-      toast.success(`The game has been fast-forwarded.`);
-      emit("onGameModified");
-    } else {
-      console.error(formatError(response));
-      errors.value = extractErrors(response);
+      if (isOk(response)) {
+        toast.success(`The game has been fast-forwarded.`);
+        emit("onGameModified");
+      } else {
+        console.error(formatError(response));
+        errors.value = extractErrors(response);
+      }
+
+      isLoading.value = false;
     }
-
-    isLoading.value = false;
   }
 };
 
