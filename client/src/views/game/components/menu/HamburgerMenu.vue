@@ -179,7 +179,7 @@
           isLoggedIn &&
           !isDataCleaned &&
           !(isDarkModeExtra && gameIsInProgress) &&
-          (gameIsInProgress || gameIsFinished)
+          (gameIsInProgress || gameIsFinished || gameIsPaused)
         "
         class="dropdown-item"
         v-on:click="setMenuState({ state: 'intel' })"
@@ -298,6 +298,8 @@ const gameIsInProgress = computed(() =>
 );
 
 const gameIsFinished = computed(() => GameHelper.isGameFinished(game.value));
+
+const gameIsPaused = computed(() => GameHelper.isGamePaused(game.value));
 
 const gameIsJoinable = computed(
   () => userStore.isLoggedIn && GameHelper.gameHasOpenSlots(game.value),

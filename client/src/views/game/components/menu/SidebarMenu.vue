@@ -75,7 +75,7 @@
           v-if="
             !isDarkModeExtra &&
             !isDataCleaned &&
-            (gameIsInProgress || gameIsFinished)
+            (gameIsInProgress || gameIsFinished || gameIsPaused)
           "
           :menuState="{ state: 'intel' }"
           tooltip="Intel (I)"
@@ -173,6 +173,8 @@ const gameIsInProgress = computed(() =>
 );
 
 const gameIsFinished = computed(() => GameHelper.isGameFinished(game.value));
+
+const gameIsPaused = computed(() => GameHelper.isGamePaused(game.value));
 </script>
 
 <style scoped>
