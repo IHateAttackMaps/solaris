@@ -1,3 +1,4 @@
+import { parseArgs } from "node:util";
 import { Carrier } from "../services/types/Carrier";
 import {
     DBObjectId,
@@ -198,31 +199,29 @@ const applyHistory = (
     applyCarriers(container, game, history);
 };
 
+const { values, positionals } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+        "delete-newer": { type: "boolean", default: false },
+        "delete-newer-events": { type: "boolean", default: false },
+    },
+    allowPositionals: true,
+});
+
+const gameIdS = positionals[0];
+const tick = Number.parseInt(positionals[1]);
+
+if (!gameIdS || !tick) {
+    throw new Error("Missing required arguments: <gameId> and <tick>");
+}
+
+if (Number.isNaN(tick)) {
+    throw new Error(`Invalid tick value: "${positionals[1]}"`);
+}
+
 const job = makeJob(
     "Restore game",
     async ({ log, container }: JobParameters) => {
-        const gameIdS = process.argv[2];
-        const tick = Number.parseInt(process.argv[3]);
-
-        const deleteNewerHistoryS = process.argv[4];
-        let deleteNewerHistory = false;
-
-        if (!gameIdS || !tick) {
-            throw new Error(
-                "Invalid arguments. Usage: npm run restore-game <gameId> <tick> <--delete-newer?>",
-            );
-        }
-
-        if (deleteNewerHistoryS === "--delete-newer") {
-            deleteNewerHistory = true;
-        } else if (deleteNewerHistoryS) {
-            throw new Error(
-                "Invalid argument: " +
-                    deleteNewerHistoryS +
-                    " expected --delete-newer or nothing",
-            );
-        }
-
         const gameId = objectIdFromString(gameIdS);
 
         const hist = await loadHistory(container, gameId, tick);
@@ -247,10 +246,21 @@ const job = makeJob(
 
         log.info("Game state saved");
 
-        if (deleteNewerHistory) {
+        if (values["delete-newer"]) {
             log.info("Deleting newer history entries");
 
             await container.historyService.historyRepo.deleteMany({
+                gameId,
+                tick: {
+                    $gt: tick,
+                },
+            });
+        }
+
+        if (values["delete-newer-events"]) {
+            log.info("Deleting newer events");
+
+            await container.eventService.eventRepo.deleteMany({
                 gameId,
                 tick: {
                     $gt: tick,
