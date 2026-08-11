@@ -170,10 +170,9 @@ const applyCarriers = (
                 orbiting: carrier.orbiting,
                 waypoints: [], // filled in below
                 waypointsLooped: false,
-                specialist,
-                specialistExpireTick:
-                    specialist &&
-                    game.state.tick + (specialist?.expireTicks ?? 0),
+                specialistExpireTick: specialist?.expireTicks
+                    ? game.state.tick + specialist?.expireTicks // TODO, we probably want to store the correct tick in the TM
+                    : null,
                 locationNext: null,
             } as unknown as Carrier;
 
