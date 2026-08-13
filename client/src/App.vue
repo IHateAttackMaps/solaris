@@ -24,6 +24,8 @@ const confirmStore = useConfirmationDialogStore();
 }
 
 .menu-page {
+  overscroll-behavior: none;
+
   opacity: 1;
   animation-name: fadeInAnimation;
   animation-duration: 0.3s;
