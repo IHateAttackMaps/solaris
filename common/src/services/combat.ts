@@ -632,12 +632,9 @@ const findBound = <
     terminationCondition:
         | "greaterThanZeroShips"
         | "otherGroupsAlive"
-        | "eliminateOtherGroups" = "greaterThanZeroShips",
+        | "eliminateOtherGroups"
+        | "estimateForDead" = "greaterThanZeroShips",
 ): number => {
-    if (estimateForGroup.shipsAfter > 0) {
-        return startingShips;
-    }
-
     let shipsNeeded = nextStep(
         startingShips,
         combatResult.groups,
@@ -684,6 +681,10 @@ const findBound = <
             if (otherGroups.some((g) => g.shipsAfter > 0)) {
                 break;
             }
+        } else if (terminationCondition === "estimateForDead") {
+            if (groupInNew!.shipsAfter === 0) {
+                break;
+            }
         }
 
         shipsNeeded = nextStep(
@@ -726,6 +727,11 @@ const estimateNeeded = <
         return n - 1;
     };
 
+    const negateTermination: "otherGroupsAlive" | "estimateForDead" =
+        terminationCondition === "eliminateOtherGroups"
+            ? "otherGroupsAlive"
+            : "estimateForDead";
+
     return (
         findBound(
             estimateForGroup,
@@ -733,7 +739,7 @@ const estimateNeeded = <
             originalGroups,
             maxBound,
             (s, _a, _b) => safeDecr(s),
-            "otherGroupsAlive",
+            negateTermination,
         ) + 1
     );
 };
