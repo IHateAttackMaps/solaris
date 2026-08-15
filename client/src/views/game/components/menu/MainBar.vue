@@ -375,8 +375,6 @@ const onReloadGameRequested = () => emit("onReloadGameRequested");
   max-height: min(1200px, calc(100dvh - 140px));
   overflow: auto;
 
-  overscroll-behavior: none;
-
   flex: 1 1 auto;
   min-height: 0;
 }

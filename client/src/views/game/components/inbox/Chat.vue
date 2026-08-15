@@ -126,7 +126,6 @@ const toggle = () => {
   flex-direction: row-reverse;
 
   * {
-    overscroll-behavior: none;
     pointer-events: auto;
   }
 }
