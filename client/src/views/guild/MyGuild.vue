@@ -166,7 +166,9 @@ const loadGuild = async () => {
     guild.value = response.data;
   } else {
     console.error(formatError(response));
+  }
 
+  if (!guild.value) {
     const invitesResponse = await listMyGuildInvites(httpClient)();
     if (isOk(invitesResponse)) {
       invites.value = invitesResponse.data;
