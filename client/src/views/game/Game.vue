@@ -363,7 +363,7 @@ onMounted(async () => {
   }
 
   //Remove scroll-bounce effect from the game screen
-  document.body.classList.add(GAME_BODY_CLASS);
+  document.documentElement.classList.add(GAME_BODY_CLASS);
 
   // If the user is in the game then display the leaderboard.
   // Otherwise show the welcome screen if there are empty slots.
@@ -418,7 +418,7 @@ onUnmounted(() => {
 
   document.title = "Solaris";
 
-  document.body.classList.remove(GAME_BODY_CLASS);
+  document.documentElement.classList.remove(GAME_BODY_CLASS);
 });
 </script>
 

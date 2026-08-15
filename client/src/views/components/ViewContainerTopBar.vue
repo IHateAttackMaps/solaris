@@ -172,6 +172,7 @@ const doLogout = async () => {
     align-items: center;
     text-decoration: none;
     font-weight: 700;
+    letter-spacing: 1px;
   }
 
   .menu-text {

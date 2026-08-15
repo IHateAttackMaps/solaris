@@ -389,7 +389,7 @@ export default class GuildService {
             },
             {
                 $unset: {
-                    guildId: undefined,
+                    guildId: "",
                 },
             },
         );

@@ -16,8 +16,11 @@ import { DBObjectId } from "./types/DBObjectId";
 import CombatProcessingService from "./combatProcessing";
 import { IEventService } from "./types/IEventService";
 import { IStatisticsService } from "./types/IStatisticsService";
+import { logger } from "../utils/logging";
 
 const EPSILON = 10 ** -10;
+
+const log = logger("CarrierCombat");
 
 export default class CarrierCombatService {
     carrierTravelService: CarrierTravelService<DBObjectId>;
@@ -146,7 +149,15 @@ export default class CarrierCombatService {
             const dualCollisions: DualCarrierCollision[] =
                 this._getDualCollisionsInPath(positions);
 
+            log.info(
+                `Path ${positions[0].source}->${positions[0].destination}: ${positions.length} carriers, ${dualCollisions.length} dual collisions`,
+            );
+
             const collisions = this._mergeCollisionsInPath(dualCollisions);
+
+            log.info(
+                `Path ${positions[0].source}->${positions[0].destination}: ${collisions.length} merged collisions`,
+            );
 
             // A collision will at this point be cleaned up to a list of carriers
             for (let collision of collisions) {
@@ -161,6 +172,14 @@ export default class CarrierCombatService {
                         ),
                     ),
                 ];
+
+                const carrierNames = collision.carriers
+                    .map((c) => `"${c.name}"`)
+                    .join(", ");
+
+                log.info(
+                    `Processing collision: [${carrierNames}] | t: ${collision.time.toFixed(4)} | loc: ${collision.location.toFixed(2)} | players: ${playersIds.length}`,
+                );
 
                 // Now if we have little carriers remaining due to a previous filter, or if all are owned by the same player,
                 // we quit the process here as no combat has to occur.
@@ -305,6 +324,10 @@ export default class CarrierCombatService {
                         carrierPositionB.carrier,
                     ],
                 });
+
+                log.info(
+                    `Dual collision: "${carrierPositionA.carrier.name}" vs "${carrierPositionB.carrier.name}" | head-to-head: ${head_to_head} | t: ${time.toFixed(4)} | loc: ${location.toFixed(2)} | path: ${carrierPositionA.source}->${carrierPositionA.destination}`,
+                );
             }
         }
 
@@ -345,12 +368,19 @@ export default class CarrierCombatService {
     }
 
     _mergeCollisions(collisionList: DualCarrierCollision[]): CarrierCollision {
+        const carriers = Array.from(
+            new Set(collisionList.flatMap((c) => c.carriers)),
+        );
+        const carrierNames = carriers.map((c) => `"${c.name}"`).join(", ");
+
+        log.info(
+            `Merged: ${collisionList.length} dual collisions -> ${carriers.length} carriers [${carrierNames}] | t: ${collisionList[0].time.toFixed(4)} | loc: ${collisionList[0].location.toFixed(2)}`,
+        );
+
         return {
             time: collisionList[0].time,
             location: collisionList[0].location,
-            carriers: Array.from(
-                new Set(collisionList.flatMap((c) => c.carriers)),
-            ),
+            carriers,
         };
     }
 

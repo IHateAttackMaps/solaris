@@ -356,6 +356,7 @@ export default class GameJoinService extends EventEmitter {
         player.afk = false;
         player.hasSentTurnReminder = false;
         player.colourMapping = new Map();
+        player.readyToQuit = false;
 
         if (!player.userId) {
             player.ready = true;

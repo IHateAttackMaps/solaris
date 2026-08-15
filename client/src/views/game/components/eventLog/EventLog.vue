@@ -248,6 +248,7 @@ onMounted(() => {
 }
 
 .events-container {
+  overscroll-behavior: none;
   overflow: auto;
 }
 </style>

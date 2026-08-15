@@ -19,8 +19,7 @@
         "readyToQuit": "enabled",
         "readyToQuitFraction": 0.9,
         "readyToQuitVisibility": "anonymous",
-        "awardRankTo": "top_n",
-        "awardRankToTopN": 4
+        "awardRankTo": "all"
     },
     "galaxy": {
         "galaxyType": "irregular",

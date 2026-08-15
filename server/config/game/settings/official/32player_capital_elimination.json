@@ -1,23 +1,24 @@
 {
     "general": {
         "name": "[[[RANDOM]]]",
-        "description": "32 players fight for dominance in this huge galaxy! Epic battles and diplomacy await, but be careful: if you lose your capital star, it is the end of your empire!",
+        "description": "EXPERIMENTAL SETTINGS: cumulative research progressions, split resources. This game has 32 players, expect big alliances and epic battles in this huge galaxy!",
         "createdFromTemplate": "32_player_capital_elimination",
         "type": "32_player_rt",
         "mode": "conquest",
         "password": null,
         "playerLimit": 32,
         "playerType": "establishedPlayers",
-        "anonymity": "normal",
+        "anonymity": "revealAtEnd",
         "playerOnlineStatus": "hidden",
         "playerIPWarning": "enabled",
         "timeMachine": "enabled",
-        "fluxEnabled": "enabled",
+        "fluxEnabled": "disabled",
         "advancedAI": "enabled",
         "spectators": "enabled",
         "afkSlotsOpen": "enabled",
         "readyToQuit": "enabled",
-        "readyToQuitFraction": 0.9,
+        "readyToQuitFraction": 0.75,
+        "readyToQuitVisibility": "anonymous",
         "awardRankTo": "all"
     },
     "galaxy": {
@@ -42,7 +43,7 @@
         "giftCarriers": "enabled",
         "defenderBonus": "enabled",
         "carrierToCarrierCombat": "enabled",
-        "splitResources": "disabled",
+        "splitResources": "enabled",
         "resourceDistribution": "random",
         "playerDistribution": "circular",
         "carrierSpeed": 20,
@@ -55,7 +56,7 @@
     "conquest": {
         "victoryCondition": "starPercentage",
         "victoryPercentage": 33,
-        "capitalStarElimination": "enabled"
+        "capitalStarElimination": "disabled"
     },
     "orbitalMechanics": {
         "enabled": "disabled",
@@ -106,11 +107,11 @@
         },
         "researchCosts": {
             "terraforming": "standard",
-            "experimentation": "cheap",
-            "scanning": "cheap",
-            "hyperspace": "cheap",
+            "experimentation": "standard",
+            "scanning": "standard",
+            "hyperspace": "standard",
             "manufacturing": "standard",
-            "banking": "cheap",
+            "banking": "standard",
             "weapons": "expensive",
             "specialists": "expensive"
         },
@@ -120,42 +121,38 @@
         "specialistTokenReward": "experimental",
         "researchCostProgressions": {
             "terraforming": {
-                "progression": "exponential",
-                "growthFactor": "medium"
+                "progression": "cumulative",
+                "scalingFactor": 1.0
             },
             "experimentation": {
-                "progression": "exponential",
-                "growthFactor": "medium"
+                "progression": "standard"
             },
             "scanning": {
-                "progression": "exponential",
-                "growthFactor": "medium"
+                "progression": "standard"
             },
             "hyperspace": {
-                "progression": "exponential",
-                "growthFactor": "medium"
+                "progression": "standard"
             },
             "manufacturing": {
-                "progression": "exponential",
-                "growthFactor": "medium"
+                "progression": "cumulative",
+                "scalingFactor": 1.0
             },
             "banking": {
-                "progression": "exponential",
-                "growthFactor": "medium"
+                "progression": "standard"
             },
             "weapons": {
-                "progression": "exponential",
-                "growthFactor": "medium"
+                "progression": "cumulative",
+                "scalingFactor": 1.0
             },
             "specialists": {
-                "progression": "exponential",
-                "growthFactor": "medium"
+                "progression": "cumulative",
+                "scalingFactor": 1.0
             }
         }
     },
     "gameTime": {
         "gameType": "realTime",
-        "speed": 3600,
+        "speed": 7200,
         "isTickLimited": "disabled",
         "startDelay": 360,
         "afk": {

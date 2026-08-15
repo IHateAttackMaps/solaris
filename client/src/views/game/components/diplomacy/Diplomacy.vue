@@ -98,7 +98,7 @@ import FormErrorList from "../../../components/FormErrorList.vue";
 import { inject, ref, computed, onMounted, onUnmounted } from "vue";
 import { eventBusInjectionKey } from "../../../../eventBus";
 import DiplomacyEventBusEventNames from "../../../../eventBusEventNames/diplomacy";
-import { type DiplomaticStatus } from "@solaris/common";
+import { type DiplomaticStatus, sorterByProperty } from "@solaris/common";
 import type { Game } from "@/types/game";
 import { listDiplomacy } from "@/services/typedapi/diplomacy";
 import {
@@ -155,7 +155,9 @@ const loadDiplomaticStatus = async () => {
 
   const response = await listDiplomacy(httpClient)(game.value._id);
   if (isOk(response)) {
-    diplomaticStatuses.value = response.data;
+    diplomaticStatuses.value = response.data.toSorted(
+      sorterByProperty("playerToAlias"),
+    );
   } else {
     console.error(formatError(response));
     errors.value = extractErrors(response);

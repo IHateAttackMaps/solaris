@@ -40,14 +40,14 @@
           />
         </div>
         <div class="col-5">
-          <button
+          <buttonF
             class="btn btn-sm btn-secondary"
             @click="loadPreviousTick(turnTicks)"
             :disabled="isLoading || tick <= minimumTick"
             :title="`Jump back ${turnTicks} ticks`"
           >
             <i class="fas fa-angle-double-left"></i>
-          </button>
+          </buttonF>
           <button
             class="btn btn-sm btn-secondary ms-1"
             @click="loadPreviousTick(1)"
@@ -65,6 +65,7 @@
               class="tickInput"
               :min="minimumTick"
               :max="stateTick"
+              @blur="confirmInput"
             />
             <button class="btn btn-sm btn-primary" @click="confirmInput">
               Go
@@ -118,15 +119,15 @@ const store = useGameStore();
 
 const isHistoricalMode = useIsHistoricalMode(store);
 
+const stateTick = computed(() => store.tick);
+
 const isInputMode = ref(false);
 const isLoading = ref(false);
 const display = ref(false);
 const tick = ref(0);
-const inputTick = ref(0);
+const inputTick = ref(stateTick.value);
 
 const game = computed<Game>(() => store.game!);
-
-const stateTick = computed(() => store.tick);
 
 const gameTick = computed(() => game.value.state.tick);
 

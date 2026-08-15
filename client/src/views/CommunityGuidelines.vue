@@ -27,6 +27,24 @@
       <li>Use offensive characters when roleplaying</li>
     </ul>
 
+    When spectating official, public games:
+
+    <ul>
+      <li>
+        Spectators are forbidden from interfering with the game, e.g. moving
+        information between players
+      </li>
+      <li>
+        Spectators are forbidden from discussing or revealing non-public game
+        information publicly
+      </li>
+      <li>
+        Spectators are only allowed to advise (not including general questions
+        about mechanics etc.) one player within a game via direct messaging
+        **if** they spectate no one else
+      </li>
+    </ul>
+
     <p>
       If you see something that violates these guidelines, use the ingame report
       feature or contact the Project Lead or Community Managers (via Discord).

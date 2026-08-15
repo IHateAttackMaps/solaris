@@ -1,6 +1,6 @@
 <template>
   <div class="cg-result-group p-2">
-    <p>Group {{ groupIndex }}</p>
+    <p>{{ group.id }}</p>
     <combat-group-attack :attack-against="group.attackAgainst" />
     <table class="table table-sm">
       <thead>

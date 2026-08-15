@@ -42,12 +42,14 @@ import {
   withdrawGuildApplication,
 } from "@/services/typedapi/guild";
 import { formatError, httpInjectionKey, isOk } from "@/services/typedapi";
+import { useToast } from "vue-toast-notification";
 
 const props = defineProps<{
   application: GuildApplication<string>;
 }>();
 
 const httpClient = inject(httpInjectionKey)!;
+const toast = useToast();
 
 const confirm = useConfirm();
 
@@ -69,6 +71,7 @@ const apply = async () => {
   if (isOk(response)) {
     props.application.hasApplied = true;
   } else {
+    toast.error(`Failed to apply to guild`);
     console.error(formatError(response));
   }
 
@@ -93,6 +96,7 @@ const withdraw = async () => {
   if (isOk(response)) {
     props.application.hasApplied = false;
   } else {
+    toast.error(`Failed to withdraw application`);
     console.error(formatError(response));
   }
 

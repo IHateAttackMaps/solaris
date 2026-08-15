@@ -30,7 +30,7 @@
           isLoggedIn &&
           !isDarkModeExtra &&
           !isDataCleaned &&
-          (gameIsInProgress || gameIsFinished)
+          (gameIsInProgress || gameIsFinished || gameIsPaused)
         "
       >
         <button class="btn" v-on:click="setMenuState({ state: 'intel' })">
@@ -73,6 +73,7 @@ const gameIsFinished = computed(() => GameHelper.isGameFinished(game.value));
 const gameIsJoinable = computed(
   () => !gameIsInProgress.value && !gameIsFinished.value,
 );
+const gameIsPaused = computed(() => GameHelper.isGamePaused(game.value));
 const isDarkModeExtra = computed(() => GameHelper.isDarkModeExtra(game.value));
 const isDataCleaned = computed(() => game.value.state.cleaned);
 
