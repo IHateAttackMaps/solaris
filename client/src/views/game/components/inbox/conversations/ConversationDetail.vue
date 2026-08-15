@@ -537,10 +537,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.messages-container {
-  overscroll-behavior: none;
-}
-
 @media screen and (max-width: 992px) {
   .messages-container {
     max-height: 500px;
